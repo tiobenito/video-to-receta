@@ -1,6 +1,23 @@
 # Video a Receta (Video to Recipe - Spanish)
 
-Convert cooking videos from TikTok, Instagram, and YouTube into formatted recipes - **targeting Spanish-speaking markets**.
+Convert cooking videos from YouTube into formatted recipes - **targeting Spanish-speaking markets**.
+
+**Repo:** https://github.com/tiobenito/video-to-receta
+
+---
+
+## Current Status: MVP COMPLETE ✅
+
+Working features:
+- Spanish UI with i18n support (easy to add more languages)
+- Whisper transcription for accurate recipe extraction
+- Claude Haiku for recipe parsing (outputs in Spanish)
+- YouTube video support
+- Copy to clipboard
+- Recipe caching (SQLite)
+- Spanish SEO meta tags
+
+---
 
 ## Strategic Direction
 
@@ -11,34 +28,44 @@ Convert cooking videos from TikTok, Instagram, and YouTube into formatted recipe
 - One site serves Mexico, Spain, US Hispanic, all of Latin America
 
 **Multi-language future:**
-Once i18n is baked in, adding German/Portuguese/French is just:
-1. A translation JSON file
-2. A language param to the API (Claude handles output language)
+Once deployed, adding German/Portuguese/French is just:
+1. Add translations to `frontend/src/lib/translations.ts`
+2. Change `defaultLocale` or add URL-based routing
 
 ---
 
 ## Tech Stack
 
-- **Frontend:** Next.js (App Router)
+- **Frontend:** Next.js 16 + TypeScript + Tailwind + shadcn/ui
 - **Backend:** FastAPI + Python
-- **AI:** Claude Haiku for recipe parsing
-- **Transcription:** YouTube transcript API (later: Whisper for TikTok/IG)
+- **Transcription:** OpenAI Whisper API (accurate, handles Spanish audio)
+- **Recipe Parsing:** Claude Haiku (outputs structured JSON in Spanish)
+- **Database:** SQLite (via Prisma) for caching
 
 ---
 
-## Current State
+## Running Locally
 
-MVP built with:
-- YouTube URL input → transcript extraction → Claude parsing → structured recipe display
-- Copy to clipboard functionality
-- Caching (SQLite)
+**Backend:**
+```bash
+cd backend
+cp .env.example .env
+# Add your API keys to .env:
+#   ANTHROPIC_API_KEY=...
+#   OPENAI_API_KEY=...
+poetry install
+poetry run prisma db push --schema=db/prisma/schema.prisma
+poetry run uvicorn app.main:app --reload
+```
 
-**What needs to change for Spanish:**
-1. Add i18n to frontend (next-intl or simple translation object)
-2. Translate ~25 UI strings
-3. Update Claude prompt to output Spanish
-4. Spanish SEO meta tags
-5. Domain decision (videoareceta.com? recetadevideo.com?)
+**Frontend:**
+```bash
+cd frontend
+pnpm install
+pnpm dev
+```
+
+Then open http://localhost:3000
 
 ---
 
@@ -48,49 +75,41 @@ MVP built with:
 frontend/
   src/
     app/
-      page.tsx          # Main page (needs translation)
-      layout.tsx        # Meta tags (needs Spanish SEO)
+      page.tsx              # Main page (Spanish)
+      layout.tsx            # SEO meta tags (Spanish)
     components/
-      recipe-converter.tsx  # Form + loading states (needs translation)
-      recipe-card.tsx       # Recipe display (needs translation)
+      recipe-converter.tsx  # URL input + loading states
+      recipe-card.tsx       # Recipe display + copy button
+    lib/
+      translations.ts       # i18n strings (es + en)
 
 backend/
   app/
     services/
-      recipe_parser.py  # Claude prompt (needs Spanish output)
-      youtube.py        # Transcript extraction
+      whisper.py          # Audio download + Whisper transcription
+      recipe_parser.py    # Claude prompt (Spanish output)
+      youtube.py          # Video ID extraction
     api/v1/
-      recipes.py        # API endpoints
+      recipes.py          # /convert endpoint
 ```
 
 ---
 
-## Translation Inventory
+## API Costs Per Conversion
 
-**page.tsx:**
-- "Video to Recipe" → "Video a Receta"
-- "Paste a YouTube cooking video URL and get a formatted recipe with ingredients and instructions." → "Pega la URL de un video de cocina de YouTube y obtén una receta formateada con ingredientes e instrucciones."
-- "Supports YouTube videos with English captions" → "Compatible con videos de YouTube con subtítulos"
+- **Whisper:** ~$0.006/min of audio (typical video = $0.05-0.10)
+- **Claude Haiku:** ~$0.001-0.002 per recipe
+- **Total:** ~$0.05-0.12 per conversion
 
-**recipe-converter.tsx:**
-- "Please enter a YouTube URL" → "Por favor ingresa una URL de YouTube"
-- "Paste YouTube video URL..." → "Pega la URL del video de YouTube..."
-- "Get Recipe" → "Obtener Receta"
-- "Converting..." → "Convirtiendo..."
-- "Extracting recipe from video..." → "Extrayendo receta del video..."
-- "Failed to convert video" → "Error al convertir el video"
-- "Something went wrong" → "Algo salió mal"
+---
 
-**recipe-card.tsx:**
-- "Prep Time" / "Prep:" → "Preparación:"
-- "Cook Time" / "Cook:" → "Cocción:"
-- "Servings:" → "Porciones:"
-- "Ingredients" → "Ingredientes"
-- "Instructions" → "Instrucciones"
-- "Copy" → "Copiar"
-- "Copied!" → "¡Copiado!"
-- "Loaded from cache" → "Cargado desde caché"
-- "Watch original video →" → "Ver video original →"
+## Next Steps
+
+1. [ ] Pick and register domain (videoareceta.com? videoreceta.com?)
+2. [ ] Deploy (Vercel for frontend, Railway for backend)
+3. [ ] Add TikTok/Instagram support
+4. [ ] Add more languages
+5. [ ] Monetization (freemium or affiliate)
 
 ---
 
@@ -103,7 +122,7 @@ backend/
 - "video de cocina a texto"
 - "receta de video de YouTube"
 
-**Meta tags to update:**
+**Current meta tags:**
 ```html
 <html lang="es">
 <title>Video a Receta - Convierte Videos de Cocina en Recetas</title>
@@ -112,32 +131,8 @@ backend/
 
 ---
 
-## Domain Ideas
+## Monetization Ideas
 
-- videoareceta.com
-- recetadevideo.com
-- videoreceta.com
-- mirecetavideo.com
-
-Check availability before deciding.
-
----
-
-## Next Steps
-
-1. [ ] Set up i18n in Next.js (simple approach: translation object)
-2. [ ] Translate all UI strings to Spanish
-3. [ ] Update Claude prompt for Spanish output
-4. [ ] Update meta tags and SEO
-5. [ ] Pick and register domain
-6. [ ] Deploy and test
-7. [ ] Later: Add TikTok/Instagram support
-8. [ ] Later: Add more languages
-
----
-
-## Monetization (same as before)
-
-- Freemium: 5 free conversions/month, then $5/month
-- Or: Free + affiliate links for ingredients/cookware
-- Or: Free + premium features (PDF export, nutritional data)
+- **Freemium:** 5 free conversions/month, then $5/month
+- **Free + Affiliate:** Links to Amazon for ingredients/cookware
+- **Free + Premium:** Pay for PDF export, nutritional data, recipe saving
