@@ -1,0 +1,34 @@
+generator client {
+  provider             = "prisma-client-py"
+  interface            = "asyncio"
+  recursive_type_depth = 5
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Recipe {
+  id          String   @id @default(cuid())
+  youtubeUrl  String   @unique
+  videoId     String
+  videoTitle  String?
+  channelName String?
+  transcript  String?
+
+  // Parsed recipe
+  title        String
+  ingredients  String // JSON string: Array of { amount: string, item: string }
+  instructions String // JSON string: Array of { step: number, text: string }
+  prepTime     String?
+  cookTime     String?
+  servings     String?
+
+  // Metadata
+  createdAt   DateTime @default(now())
+  accessCount Int      @default(1)
+
+  @@index([videoId])
+  @@index([createdAt])
+}

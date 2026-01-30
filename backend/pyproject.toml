@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "video-to-recipe-backend"
+version = "0.1.0"
+description = "Convert YouTube cooking videos into formatted recipes"
+authors = ["Ben Battles <benbattles7@gmail.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.15"
+fastapi = "^0.109.0"
+uvicorn = {extras = ["standard"], version = "^0.27.0"}
+prisma = "^0.12.0"
+youtube-transcript-api = "^1.2.4"
+yt-dlp = "^2026.1.29"
+anthropic = "^0.18.0"
+openai = "^1.12.0"
+python-dotenv = "^1.0.0"
+pydantic = "^2.6.0"
+pydantic-settings = "^2.1.0"
+httpx = "^0.26.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-asyncio = "^0.23.0"
+ruff = "^0.2.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
