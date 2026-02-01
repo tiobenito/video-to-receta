@@ -1,4 +1,9 @@
-"""Recipe conversion endpoints."""
+"""Recipe conversion endpoints.
+
+Supports:
+- YouTube videos
+- TikTok videos
+"""
 
 import json
 
@@ -7,10 +12,13 @@ from fastapi import APIRouter, HTTPException
 from app.core.database import db
 from app.models.recipe import ConvertRequest, ErrorResponse, RecipeResponse
 from app.services.recipe_parser import RecipeParseError, parse_recipe
-from app.services.whisper import WhisperError, transcribe_video
-from app.services.youtube import (
-    YouTubeError,
-    extract_video_id,
+from app.services.whisper import WhisperError, transcribe_from_url
+from app.services.video_platform import (
+    VideoError,
+    UnsupportedPlatformError,
+    InvalidURLError,
+    extract_video_info,
+    Platform,
 )
 
 router = APIRouter()
@@ -27,14 +35,18 @@ router = APIRouter()
 )
 async def convert_video_to_recipe(request: ConvertRequest):
     """
-    Convert a YouTube cooking video URL to a structured recipe.
+    Convert a cooking video URL to a structured recipe.
+
+    Supports:
+    - YouTube videos (youtube.com, youtu.be)
+    - TikTok videos (tiktok.com, vm.tiktok.com)
 
     Uses Whisper for accurate transcription, then Claude to extract the recipe.
     If the recipe has been converted before, returns the cached version.
     """
     url = str(request.url)
 
-    # Check cache first
+    # Check cache first (using youtubeUrl field for all platforms for backwards compat)
     existing = await db.recipe.find_unique(where={"youtubeUrl": url})
     if existing:
         # Increment access count
@@ -48,6 +60,9 @@ async def convert_video_to_recipe(request: ConvertRequest):
             videoId=existing.videoId,
             videoTitle=existing.videoTitle,
             channelName=existing.channelName,
+            creatorUsername=getattr(existing, "creatorUsername", None),
+            creatorUrl=getattr(existing, "creatorUrl", None),
+            platform=getattr(existing, "platform", None),
             title=existing.title,
             ingredients=json.loads(existing.ingredients),
             instructions=json.loads(existing.instructions),
@@ -57,19 +72,23 @@ async def convert_video_to_recipe(request: ConvertRequest):
             cached=True,
         )
 
-    # Extract video ID
+    # Extract video info (platform, video_id, download URL)
     try:
-        video_id = extract_video_id(url)
-    except YouTubeError as e:
+        video_info = extract_video_info(url)
+    except UnsupportedPlatformError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except InvalidURLError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except VideoError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # Transcribe with Whisper (primary method)
+    # Transcribe with Whisper
     try:
-        transcript = transcribe_video(video_id)
+        transcript = transcribe_from_url(video_info.download_url, video_info.video_id)
     except WhisperError as e:
         raise HTTPException(
             status_code=422,
-            detail=f"Transcription failed: {str(e)}",
+            detail=str(e),
         )
 
     # Parse recipe from transcript
@@ -78,11 +97,14 @@ async def convert_video_to_recipe(request: ConvertRequest):
     except RecipeParseError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
-    # Save to database
+    # Save to database (using youtubeUrl field for all platforms for backwards compat)
     recipe = await db.recipe.create(
         data={
             "youtubeUrl": url,
-            "videoId": video_id,
+            "videoId": video_info.video_id,
+            "creatorUsername": video_info.creator_username,
+            "creatorUrl": video_info.creator_url,
+            "platform": video_info.platform.value,
             "transcript": transcript,
             "title": recipe_data["title"],
             "ingredients": json.dumps(recipe_data["ingredients"]),
@@ -99,12 +121,16 @@ async def convert_video_to_recipe(request: ConvertRequest):
         videoId=recipe.videoId,
         videoTitle=recipe.videoTitle,
         channelName=recipe.channelName,
+        creatorUsername=video_info.creator_username,
+        creatorUrl=video_info.creator_url,
+        platform=video_info.platform.value,
         title=recipe.title,
         ingredients=recipe_data["ingredients"],
         instructions=recipe_data["instructions"],
         prepTime=recipe.prepTime,
         cookTime=recipe.cookTime,
         servings=recipe.servings,
+        tags=recipe_data.get("tags", []),  # AI-suggested tags
         cached=False,
     )
 
@@ -127,6 +153,9 @@ async def get_recipe(recipe_id: str):
         videoId=recipe.videoId,
         videoTitle=recipe.videoTitle,
         channelName=recipe.channelName,
+        creatorUsername=getattr(recipe, "creatorUsername", None),
+        creatorUrl=getattr(recipe, "creatorUrl", None),
+        platform=getattr(recipe, "platform", None),
         title=recipe.title,
         ingredients=json.loads(recipe.ingredients),
         instructions=json.loads(recipe.instructions),

@@ -15,6 +15,9 @@ model Recipe {
   videoId     String
   videoTitle  String?
   channelName String?
+  creatorUsername String?
+  creatorUrl  String?
+  platform    String?  // "youtube" or "tiktok"
   transcript  String?
 
   // Parsed recipe

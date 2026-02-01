@@ -7,6 +7,17 @@ import anthropic
 
 from app.core.config import settings
 
+# Available tags for recipe categorization
+AVAILABLE_TAGS = [
+    "entrada", "plato-fuerte", "postre", "salsa", "bebida", "desayuno",
+    "snack", "sopa", "ensalada", "guarnicion", "pan", "masa",
+    "mexicana", "italiana", "asiatica", "americana", "francesa", "mediterranea",
+    "saludable", "rapida", "vegetariana", "vegana", "sin-gluten", "keto",
+    "picante", "dulce", "agridulce", "ahumado",
+    "pollo", "carne", "cerdo", "mariscos", "pescado",
+    "horno", "parrilla", "sarten", "olla", "freidora", "sin-coccion",
+]
+
 RECIPE_EXTRACTION_PROMPT_ES = """Eres un asistente de extracción de recetas. Dado un transcrito de un video de cocina, extrae una receta estructurada.
 
 Devuelve JSON en este formato exacto:
@@ -22,8 +33,12 @@ Devuelve JSON en este formato exacto:
   "instructions": [
     { "step": 1, "text": "Precalienta el horno a 180°C" },
     { "step": 2, "text": "Mezcla los ingredientes secos" }
-  ]
+  ],
+  "tags": ["mexicana", "plato-fuerte", "picante"]
 }
+
+Etiquetas disponibles (usa SOLO estas, elige 2-5 relevantes):
+""" + ", ".join(AVAILABLE_TAGS) + """
 
 Pautas:
 - Extrae el título de la receta de cómo el presentador se refiere al platillo
@@ -33,6 +48,7 @@ Pautas:
 - Mantén los pasos de instrucción claros y accionables
 - Si el video cubre múltiples recetas, extrae la principal
 - IMPORTANTE: Escribe todo en español, incluyendo nombres de ingredientes y pasos
+- Para tags: elige 2-5 etiquetas que mejor describan el tipo de platillo, cocina, método de cocción, y proteína principal
 
 Devuelve SOLO el JSON, sin texto adicional ni explicaciones.
 
@@ -54,8 +70,12 @@ Return JSON in this exact format:
   "instructions": [
     { "step": 1, "text": "Preheat oven to 350°F" },
     { "step": 2, "text": "Mix dry ingredients" }
-  ]
+  ],
+  "tags": ["americana", "plato-fuerte", "horno"]
 }
+
+Available tags (use ONLY these, pick 2-5 relevant ones):
+""" + ", ".join(AVAILABLE_TAGS) + """
 
 Guidelines:
 - Extract the recipe title from how the host refers to the dish
@@ -64,6 +84,7 @@ Guidelines:
 - Combine similar steps if they're repetitive in the transcript
 - Keep instruction steps clear and actionable
 - If the video covers multiple recipes, extract the main/primary one
+- For tags: pick 2-5 tags that best describe the dish type, cuisine, cooking method, and main protein
 
 Return ONLY the JSON, no additional text or explanation.
 
@@ -139,6 +160,12 @@ async def parse_recipe(transcript: str, language: str = "es") -> dict[str, Any]:
             raise RecipeParseError("Ingredients must be a list")
         if not isinstance(recipe_data["instructions"], list):
             raise RecipeParseError("Instructions must be a list")
+
+        # Validate and filter tags
+        if "tags" in recipe_data and isinstance(recipe_data["tags"], list):
+            recipe_data["tags"] = [t for t in recipe_data["tags"] if t in AVAILABLE_TAGS]
+        else:
+            recipe_data["tags"] = []
 
         return recipe_data
 

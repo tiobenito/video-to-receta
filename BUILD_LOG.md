@@ -23,8 +23,10 @@ Converting YouTube cooking videos into formatted recipes using transcript extrac
 | **RecipeConverter** | ✅ Done | URL input with loading states |
 | **RecipeCard** | ✅ Done | Recipe display with copy button |
 | **Frontend Build** | ✅ Done | Builds successfully |
-| **E2E Testing** | ⏳ Pending | Need API key to test full flow |
+| **E2E Testing** | ✅ Done | Full flow working with API keys |
 | **Deployment** | ❌ Not Started | Railway/Vercel not configured |
+| **Recipe Book** | ✅ Done | Local storage, /recetario page |
+| **Unit Conversion** | ✅ Done | Metric/imperial toggle |
 
 ---
 
@@ -218,6 +220,27 @@ Health check - returns `{ "status": "healthy" }`
 
 ## Session Notes
 
+### 2026-01-30 - Session 4: TikTok Support
+
+**What was done:**
+1. Created `video_platform.py` - platform detection and URL parsing for YouTube + TikTok
+2. Updated `whisper.py` - new `download_audio_from_url()` supports any yt-dlp compatible URL
+3. Updated `recipes.py` endpoint - uses new platform-agnostic video extraction
+4. Updated frontend translations - placeholder and descriptions now mention TikTok
+5. Updated BUILD_LOG with new status
+
+**TikTok URL formats supported:**
+- `https://www.tiktok.com/@user/video/1234567890`
+- `https://vm.tiktok.com/ABC123/` (short URLs)
+- `https://www.tiktok.com/t/ABC123/`
+
+**Cost implications:**
+- TikTok videos always use Whisper (~$0.006/min of audio)
+- Typical TikTok = 1-2 min = ~$0.01/video
+
+**Not implemented (deferred):**
+- Instagram Reels - requires authentication, aggressive rate limiting
+
 ### 2026-01-29 - Session 2: Frontend Build
 
 **What was done:**
@@ -259,19 +282,50 @@ Health check - returns `{ "status": "healthy" }`
 
 ## Known Limitations
 
-1. **YouTube only** - TikTok/Instagram not yet supported
-2. **Requires captions** - Whisper fallback not implemented
+1. **YouTube + TikTok** - Instagram not yet supported (requires auth)
+2. **Whisper-dependent** - All videos use Whisper API for transcription
 3. **English/Spanish only** - Limited language support
-4. **No video title** - Would need YouTube Data API
+4. **No video title** - Would need platform APIs for metadata
 
 ---
 
-## Future Enhancements (v1.5+)
+## Phase 4: Enhanced Features - IN PROGRESS
 
-- [ ] PDF download button
-- [ ] TikTok support
-- [ ] Instagram support
+### Priority 1: Recipe Book & Collections ✅
+- [x] Create `/recetario` page for saved recipes
+- [x] Add "Save to recipe book" button on RecipeCard
+- [x] Store recipes in localStorage (no auth for now)
+- [x] Grid view of saved recipes
+- [x] Delete from recipe book
+
+### Priority 2: Unit Conversion ✅
+- [x] Add metric/imperial toggle on RecipeCard
+- [x] Default to metric system
+- [x] Convert common units (cups ↔ ml, oz ↔ g, lb ↔ kg)
+
+### Priority 3: PDF Export
+- [ ] Basic PDF download button
+- [ ] Recipe card format (4x6 printable)
+- [ ] Template picker (rustic, modern, minimalist)
+- [ ] Future: Canva-style designs
+
+### Priority 4: More Platforms
+- [x] TikTok video support
+- [ ] Instagram Reels support (requires auth, deferred)
+
+### Priority 5: Discovery
+- [ ] Trending recipes (what others are converting)
+- [ ] Link to creator channels
+
+---
+
+## Future Enhancements (v2.0+)
+
+- [ ] User accounts & cloud sync
+- [ ] Recipe collections/folders
 - [ ] Whisper fallback for videos without captions
 - [ ] Nutritional estimates
-- [ ] Recipe scaling
+- [ ] Recipe scaling (servings adjuster)
+- [ ] Shopping list generator
+- [ ] WhatsApp share button
 - [ ] Dark mode toggle

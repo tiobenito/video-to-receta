@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Recipe, ErrorResponse } from "@/types/recipe";
 import { RecipeCard } from "./recipe-card";
 import { t } from "@/lib/translations";
@@ -52,31 +50,39 @@ export function RecipeConverter() {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-8">
+    <div className="w-full max-w-xl mx-auto space-y-8">
       {/* Input form */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex gap-3">
-          <Input
+        <div className="flex flex-col sm:flex-row gap-3">
+          <input
             type="url"
             placeholder={t("placeholder")}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             disabled={loading}
-            className="flex-1"
+            className="flex-1 px-4 py-3 text-[15px] rounded-lg border-2 border-[var(--border-warm)] bg-[var(--card-white)] text-[var(--text-dark)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--teal)] focus:ring-4 focus:ring-[var(--teal)]/10 transition-all disabled:opacity-50"
           />
-          <Button type="submit" disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-6 py-3 rounded-lg font-medium text-white bg-gradient-to-br from-[var(--teal)] to-[var(--teal-dark)] hover:shadow-lg hover:shadow-[var(--teal)]/20 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+          >
             {loading ? t("submitting") : t("submit")}
-          </Button>
+          </button>
         </div>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && (
+          <p className="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-lg">
+            {error}
+          </p>
+        )}
       </form>
 
       {/* Loading state */}
       {loading && (
         <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-muted border-t-primary"></div>
-          <p className="mt-4 text-muted-foreground">{t("loading")}</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[var(--cream-dark)] border-t-[var(--teal)]"></div>
+          <p className="mt-4 text-[var(--text-muted)]">{t("loading")}</p>
         </div>
       )}
 
