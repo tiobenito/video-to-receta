@@ -1,10 +1,10 @@
 import { Recipe, SavedRecipe, RecipeTag, RecipeNote, RECIPE_TAGS } from "@/types/recipe";
 import {
   fetchSavedRecipes,
+  fetchSavedRecipe,
   createSavedRecipe,
   updateSavedRecipe,
   deleteSavedRecipe,
-  syncNotionRecipes,
   SavedRecipeAPI,
 } from "./api-recipes";
 
@@ -19,7 +19,7 @@ function generateId(): string {
 
 function toAPI(
   recipe: SavedRecipe
-): Omit<SavedRecipeAPI, "id" | "notionPageId" | "notionSynced" | "savedAt" | "updatedAt"> {
+): Omit<SavedRecipeAPI, "id" | "savedAt" | "updatedAt"> {
   return {
     recipeId: recipe.id || null,
     sourceUrl: recipe.youtubeUrl || null,
@@ -64,8 +64,7 @@ function fromAPI(api: SavedRecipeAPI): SavedRecipe {
     savedAt: api.savedAt,
     // Stash the server-side ID so we can update/delete by it
     _cloudId: api.id,
-    notionSynced: api.notionSynced,
-  } as SavedRecipe & { _cloudId: string; notionSynced: boolean };
+  } as SavedRecipe & { _cloudId: string };
 }
 
 function safeParseJSON<T>(value: string | null | undefined, fallback: T): T {
@@ -110,17 +109,6 @@ export async function migrateFromLocalStorage(): Promise<void> {
     localStorage.setItem(MIGRATED_KEY, "true");
   } catch {
     // Don't block the app if migration fails
-  }
-}
-
-// -- Notion two-way sync --
-
-export async function syncFromNotion(): Promise<void> {
-  try {
-    await syncNotionRecipes();
-    invalidateCache();
-  } catch {
-    // Notion sync is best-effort — don't block the page
   }
 }
 
@@ -217,6 +205,19 @@ export async function isRecipeSaved(videoId: string): Promise<boolean> {
 export async function getSavedRecipe(videoId: string): Promise<SavedRecipe | null> {
   const recipes = await getCache();
   return recipes.find((r) => r.videoId === videoId) || null;
+}
+
+/**
+ * Fetch the full recipe detail from the API (includes code block data like instructions/notes).
+ * The list endpoint skips fetching blocks for performance, so use this when opening a recipe detail.
+ */
+export async function getFullRecipeByCloudId(cloudId: string): Promise<SavedRecipe | null> {
+  try {
+    const api = await fetchSavedRecipe(cloudId);
+    return fromAPI(api);
+  } catch {
+    return null;
+  }
 }
 
 // Tag management

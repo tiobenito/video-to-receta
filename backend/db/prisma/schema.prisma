@@ -36,25 +36,3 @@ model Recipe {
   @@index([createdAt])
 }
 
-model SavedRecipe {
-  id            String   @id @default(cuid())
-  recipeId      String?  // Link to cached Recipe if from video
-  sourceUrl     String?  // Original video or blog URL
-  sourceType    String   // "video" | "blog"
-  title         String
-  ingredients   String   // JSON string
-  instructions  String   // JSON string
-  prepTime      String?
-  cookTime      String?
-  servings      String?
-  tags          String?  // JSON array of tag strings
-  notes         String?  // JSON array of note objects
-  userEdits     String?  // JSON of user overrides
-  collectionIds String?  // JSON array of collection IDs
-  notionPageId  String?  // Notion page ID (for sync)
-  notionSynced  Boolean  @default(false)
-  savedAt       DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@index([savedAt])
-}

@@ -16,8 +16,6 @@ export interface SavedRecipeAPI {
   notes: string | null; // JSON array
   userEdits: string | null; // JSON
   collectionIds: string | null; // JSON array
-  notionPageId: string | null;
-  notionSynced: boolean;
   savedAt: string;
   updatedAt: string;
 }
@@ -47,7 +45,7 @@ export async function fetchSavedRecipe(id: string): Promise<SavedRecipeAPI> {
 }
 
 export async function createSavedRecipe(
-  data: Omit<SavedRecipeAPI, "id" | "notionPageId" | "notionSynced" | "savedAt" | "updatedAt">
+  data: Omit<SavedRecipeAPI, "id" | "savedAt" | "updatedAt">
 ): Promise<SavedRecipeAPI> {
   return apiFetch<SavedRecipeAPI>("/api/v1/saved-recipes", {
     method: "POST",
@@ -67,10 +65,4 @@ export async function updateSavedRecipe(
 
 export async function deleteSavedRecipe(id: string): Promise<void> {
   await apiFetch<void>(`/api/v1/saved-recipes/${id}`, { method: "DELETE" });
-}
-
-export async function syncNotionRecipes(): Promise<{ imported: number }> {
-  return apiFetch<{ imported: number }>("/api/v1/saved-recipes/sync-notion", {
-    method: "POST",
-  });
 }

@@ -49,7 +49,5 @@ class SavedRecipeResponse(BaseModel):
     notes: str | None = None
     userEdits: str | None = None
     collectionIds: str | None = None
-    notionPageId: str | None = None
-    notionSynced: bool = False
     savedAt: datetime
     updatedAt: datetime

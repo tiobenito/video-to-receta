@@ -8,7 +8,7 @@ import { RecipeCard } from "@/components/recipe-card";
 import { TagBadges } from "@/components/tag-picker";
 import { CollectionBadges } from "@/components/collection-picker";
 import { Header } from "@/components/header";
-import { getSavedRecipes, migrateFromLocalStorage, syncFromNotion } from "@/lib/recipe-storage";
+import { getSavedRecipes, migrateFromLocalStorage, getFullRecipeByCloudId } from "@/lib/recipe-storage";
 import { getCollections } from "@/lib/collection-storage";
 import { t, translateTag } from "@/lib/translations";
 
@@ -16,6 +16,7 @@ export default function RecetarioPage() {
   const [recipes, setRecipes] = useState<SavedRecipe[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<SavedRecipe | null>(null);
+  const [loadingRecipe, setLoadingRecipe] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<RecipeTag | null>(null);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
@@ -23,8 +24,6 @@ export default function RecetarioPage() {
   useEffect(() => {
     async function load() {
       await migrateFromLocalStorage();
-      // Pull any new recipes from Notion, then load all
-      await syncFromNotion();
       setRecipes(await getSavedRecipes());
     }
     load();
@@ -60,6 +59,18 @@ export default function RecetarioPage() {
       return matchesSearch && matchesTag && matchesCollection;
     });
   }, [recipes, searchQuery, selectedTag, selectedCollection]);
+
+  const handleSelectRecipe = async (recipe: SavedRecipe) => {
+    const cloudId = (recipe as SavedRecipe & { _cloudId?: string })._cloudId;
+    if (!cloudId) {
+      setSelectedRecipe(recipe);
+      return;
+    }
+    setLoadingRecipe(true);
+    const full = await getFullRecipeByCloudId(cloudId);
+    setSelectedRecipe(full || recipe);
+    setLoadingRecipe(false);
+  };
 
   const handleRemove = (videoId: string) => {
     setRecipes((prev) => prev.filter((r) => r.videoId !== videoId));
@@ -250,7 +261,7 @@ export default function RecetarioPage() {
               return (
                 <button
                   key={recipe.videoId}
-                  onClick={() => setSelectedRecipe(recipe)}
+                  onClick={() => handleSelectRecipe(recipe)}
                   className="recipe-grid-card text-left"
                 >
                   <h3 className="font-serif font-semibold text-[var(--text-dark)] mb-2 line-clamp-2">
