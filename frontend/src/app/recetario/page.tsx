@@ -8,7 +8,7 @@ import { RecipeCard } from "@/components/recipe-card";
 import { TagBadges } from "@/components/tag-picker";
 import { CollectionBadges } from "@/components/collection-picker";
 import { Header } from "@/components/header";
-import { getSavedRecipes } from "@/lib/recipe-storage";
+import { getSavedRecipes, migrateFromLocalStorage, syncFromNotion } from "@/lib/recipe-storage";
 import { getCollections } from "@/lib/collection-storage";
 import { t, translateTag } from "@/lib/translations";
 
@@ -21,7 +21,13 @@ export default function RecetarioPage() {
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
 
   useEffect(() => {
-    setRecipes(getSavedRecipes());
+    async function load() {
+      await migrateFromLocalStorage();
+      // Pull any new recipes from Notion, then load all
+      await syncFromNotion();
+      setRecipes(await getSavedRecipes());
+    }
+    load();
     setCollections(getCollections());
   }, []);
 

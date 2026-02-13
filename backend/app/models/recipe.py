@@ -31,7 +31,7 @@ class RecipeResponse(BaseModel):
     channelName: str | None = None
     creatorUsername: str | None = None
     creatorUrl: str | None = None
-    platform: str | None = None  # "youtube" or "tiktok"
+    platform: str | None = None  # "youtube", "tiktok", or "blog"
     title: str
     ingredients: list[Ingredient]
     instructions: list[Instruction]

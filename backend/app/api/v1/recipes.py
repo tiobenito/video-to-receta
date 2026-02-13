@@ -3,6 +3,7 @@
 Supports:
 - YouTube videos
 - TikTok videos
+- Blog/recipe website URLs
 """
 
 import json
@@ -19,7 +20,9 @@ from app.services.video_platform import (
     InvalidURLError,
     extract_video_info,
     Platform,
+    detect_url_type,
 )
+from app.services.blog_scraper import BlogScrapeError, extract_recipe_from_blog
 
 router = APIRouter()
 
@@ -35,16 +38,19 @@ router = APIRouter()
 )
 async def convert_video_to_recipe(request: ConvertRequest):
     """
-    Convert a cooking video URL to a structured recipe.
+    Convert a cooking video or blog URL to a structured recipe.
 
     Supports:
     - YouTube videos (youtube.com, youtu.be)
     - TikTok videos (tiktok.com, vm.tiktok.com)
+    - Blog/recipe websites (allrecipes.com, etc.)
 
-    Uses Whisper for accurate transcription, then Claude to extract the recipe.
+    For videos: Uses Whisper for transcription, then Claude to extract the recipe.
+    For blogs: Uses recipe-scrapers for structured data, falls back to Claude.
     If the recipe has been converted before, returns the cached version.
     """
     url = str(request.url)
+    url_type = detect_url_type(url)
 
     # Check cache first (using youtubeUrl field for all platforms for backwards compat)
     existing = await db.recipe.find_unique(where={"youtubeUrl": url})
@@ -72,6 +78,57 @@ async def convert_video_to_recipe(request: ConvertRequest):
             cached=True,
         )
 
+    if url_type == "blog":
+        return await _convert_blog(url)
+
+    return await _convert_video(url)
+
+
+async def _convert_blog(url: str) -> RecipeResponse:
+    """Extract a recipe from a blog URL."""
+    try:
+        recipe_data = await extract_recipe_from_blog(url)
+    except BlogScrapeError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except RecipeParseError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+    # Generate a stable video_id from the URL for caching
+    from hashlib import md5
+    video_id = f"blog_{md5(url.encode()).hexdigest()[:12]}"
+
+    recipe = await db.recipe.create(
+        data={
+            "youtubeUrl": url,
+            "videoId": video_id,
+            "platform": "blog",
+            "title": recipe_data["title"],
+            "ingredients": json.dumps(recipe_data["ingredients"]),
+            "instructions": json.dumps(recipe_data["instructions"]),
+            "prepTime": recipe_data.get("prepTime"),
+            "cookTime": recipe_data.get("cookTime"),
+            "servings": recipe_data.get("servings"),
+        }
+    )
+
+    return RecipeResponse(
+        id=recipe.id,
+        youtubeUrl=url,
+        videoId=video_id,
+        platform="blog",
+        title=recipe.title,
+        ingredients=recipe_data["ingredients"],
+        instructions=recipe_data["instructions"],
+        prepTime=recipe.prepTime,
+        cookTime=recipe.cookTime,
+        servings=recipe.servings,
+        tags=recipe_data.get("tags", []),
+        cached=False,
+    )
+
+
+async def _convert_video(url: str) -> RecipeResponse:
+    """Extract a recipe from a video URL (YouTube/TikTok)."""
     # Extract video info (platform, video_id, download URL)
     try:
         video_info = extract_video_info(url)
@@ -130,7 +187,7 @@ async def convert_video_to_recipe(request: ConvertRequest):
         prepTime=recipe.prepTime,
         cookTime=recipe.cookTime,
         servings=recipe.servings,
-        tags=recipe_data.get("tags", []),  # AI-suggested tags
+        tags=recipe_data.get("tags", []),
         cached=False,
     )
 

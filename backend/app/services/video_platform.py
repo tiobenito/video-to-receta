@@ -175,6 +175,17 @@ def extract_video_info(url: str) -> VideoInfo:
     )
 
 
+def detect_url_type(url: str) -> str:
+    """
+    Detect whether a URL is a video platform or a blog/website.
+
+    Returns:
+        "video" if YouTube or TikTok, "blog" otherwise
+    """
+    platform = detect_platform(url)
+    return "video" if platform != Platform.UNKNOWN else "blog"
+
+
 def get_platform_display_name(platform: Platform) -> str:
     """Get human-readable platform name."""
     return {

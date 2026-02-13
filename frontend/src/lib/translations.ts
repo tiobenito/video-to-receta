@@ -2,17 +2,17 @@ export const translations = {
   es: {
     // Page
     title: "Video a Receta",
-    description: "Convierte videos de cocina de YouTube o TikTok en recetas con ingredientes e instrucciones.",
-    footer: "Compatible con videos de YouTube y TikTok",
+    description: "Convierte videos de cocina o blogs en recetas con ingredientes e instrucciones.",
+    footer: "Compatible con YouTube, TikTok, y blogs de recetas",
 
     // Form
-    placeholder: "Pega la URL del video (YouTube o TikTok)...",
+    placeholder: "Pega la URL (YouTube, TikTok, o blog de recetas)...",
     submit: "Obtener Receta",
     submitting: "Convirtiendo...",
-    loading: "Extrayendo receta del video...",
+    loading: "Extrayendo receta...",
 
     // Errors
-    errorEmpty: "Por favor ingresa una URL de YouTube o TikTok",
+    errorEmpty: "Por favor ingresa una URL de video o blog de recetas",
     errorConvert: "Error al convertir el video",
     errorGeneric: "Algo salió mal",
 
@@ -26,6 +26,7 @@ export const translations = {
     copied: "¡Copiado!",
     cached: "Cargado desde caché",
     watchVideo: "Ver video original →",
+    viewSource: "Ver receta original →",
     source: "Fuente:",
 
     // Recipe book
@@ -159,17 +160,17 @@ export const translations = {
   en: {
     // Page
     title: "Video to Recipe",
-    description: "Paste a YouTube or TikTok cooking video URL and get a formatted recipe with ingredients and instructions.",
-    footer: "Supports YouTube and TikTok videos",
+    description: "Paste a cooking video or recipe blog URL and get a formatted recipe with ingredients and instructions.",
+    footer: "Supports YouTube, TikTok, and recipe blogs",
 
     // Form
-    placeholder: "Paste video URL (YouTube or TikTok)...",
+    placeholder: "Paste URL (YouTube, TikTok, or recipe blog)...",
     submit: "Get Recipe",
     submitting: "Converting...",
-    loading: "Extracting recipe from video...",
+    loading: "Extracting recipe...",
 
     // Errors
-    errorEmpty: "Please enter a YouTube or TikTok URL",
+    errorEmpty: "Please enter a video or recipe blog URL",
     errorConvert: "Failed to convert video",
     errorGeneric: "Something went wrong",
 
@@ -183,6 +184,7 @@ export const translations = {
     copied: "Copied!",
     cached: "Loaded from cache",
     watchVideo: "Watch original video →",
+    viewSource: "View original recipe →",
     source: "Source:",
 
     // Recipe book

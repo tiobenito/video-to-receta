@@ -70,13 +70,16 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
   const displayIngredients = convertIngredients(scaledIngredients, unitSystem);
 
   useEffect(() => {
-    const saved = getSavedRecipe(recipe.videoId);
-    if (saved) {
-      setSavedRecipe(saved);
-      setIsSaved(true);
-    } else {
-      setIsSaved(isRecipeSaved(recipe.videoId));
+    async function load() {
+      const saved = await getSavedRecipe(recipe.videoId);
+      if (saved) {
+        setSavedRecipe(saved);
+        setIsSaved(true);
+      } else {
+        setIsSaved(await isRecipeSaved(recipe.videoId));
+      }
     }
+    load();
   }, [recipe.videoId]);
 
   const startEditing = () => {
@@ -93,10 +96,10 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
     setIsEditing(false);
   };
 
-  const saveEditing = () => {
+  const saveEditing = async () => {
     if (!savedRecipe) return;
 
-    const updated = saveRecipeEdits(recipe.videoId, {
+    const updated = await saveRecipeEdits(recipe.videoId, {
       title: editedTitle !== recipe.title ? editedTitle : undefined,
       ingredients: JSON.stringify(editedIngredients) !== JSON.stringify(recipe.ingredients) ? editedIngredients : undefined,
       instructions: JSON.stringify(editedInstructions) !== JSON.stringify(recipe.instructions) ? editedInstructions : undefined,
@@ -112,8 +115,8 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
     setIsEditing(false);
   };
 
-  const resetEdits = () => {
-    const updated = clearRecipeEdits(recipe.videoId);
+  const resetEdits = async () => {
+    const updated = await clearRecipeEdits(recipe.videoId);
     if (updated) {
       setSavedRecipe(updated);
       onUpdate?.(updated);
@@ -121,13 +124,13 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
     setIsEditing(false);
   };
 
-  const handleTagToggle = (tag: RecipeTag) => {
+  const handleTagToggle = async (tag: RecipeTag) => {
     if (!savedRecipe) return;
 
     const hasTag = savedRecipe.tags.includes(tag);
     const updated = hasTag
-      ? removeTagFromRecipe(recipe.videoId, tag)
-      : addTagToRecipe(recipe.videoId, tag);
+      ? await removeTagFromRecipe(recipe.videoId, tag)
+      : await addTagToRecipe(recipe.videoId, tag);
 
     if (updated) {
       setSavedRecipe(updated);
@@ -135,10 +138,10 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
     }
   };
 
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (!newNote.trim() || !savedRecipe) return;
 
-    const updated = addNoteToRecipe(recipe.videoId, newNote.trim());
+    const updated = await addNoteToRecipe(recipe.videoId, newNote.trim());
     if (updated) {
       setSavedRecipe(updated);
       onUpdate?.(updated);
@@ -146,8 +149,8 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
     }
   };
 
-  const handleDeleteNote = (noteId: string) => {
-    const updated = removeNoteFromRecipe(recipe.videoId, noteId);
+  const handleDeleteNote = async (noteId: string) => {
+    const updated = await removeNoteFromRecipe(recipe.videoId, noteId);
     if (updated) {
       setSavedRecipe(updated);
       onUpdate?.(updated);
@@ -254,16 +257,16 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
     }
   };
 
-  const handleSave = () => {
-    const saved = saveRecipe(recipe);
+  const handleSave = async () => {
+    const saved = await saveRecipe(recipe);
     setSavedRecipe(saved);
     setIsSaved(true);
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 2000);
   };
 
-  const handleRemove = () => {
-    removeRecipe(recipe.videoId);
+  const handleRemove = async () => {
+    await removeRecipe(recipe.videoId);
     setIsSaved(false);
     setSavedRecipe(null);
     onRemove?.();
@@ -770,7 +773,7 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
                 rel="noopener noreferrer"
                 className="ml-auto text-sm text-[var(--text-muted)] hover:text-[var(--teal)] transition-colors flex items-center gap-1"
               >
-                {t("watchVideo")}
+                {recipe.platform === "blog" ? t("viewSource") : t("watchVideo")}
               </a>
             </>
           )}

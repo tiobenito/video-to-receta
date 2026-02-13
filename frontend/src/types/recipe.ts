@@ -16,7 +16,7 @@ export interface Recipe {
   channelName: string | null;
   creatorUsername: string | null;
   creatorUrl: string | null;
-  platform: "youtube" | "tiktok" | null;
+  platform: "youtube" | "tiktok" | "blog" | null;
   title: string;
   ingredients: Ingredient[];
   instructions: Instruction[];
