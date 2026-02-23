@@ -70,16 +70,13 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
   const displayIngredients = convertIngredients(scaledIngredients, unitSystem);
 
   useEffect(() => {
-    async function load() {
-      const saved = await getSavedRecipe(recipe.videoId);
-      if (saved) {
-        setSavedRecipe(saved);
-        setIsSaved(true);
-      } else {
-        setIsSaved(await isRecipeSaved(recipe.videoId));
-      }
+    const saved = getSavedRecipe(recipe.videoId);
+    if (saved) {
+      setSavedRecipe(saved);
+      setIsSaved(true);
+    } else {
+      setIsSaved(isRecipeSaved(recipe.videoId));
     }
-    load();
   }, [recipe.videoId]);
 
   const startEditing = () => {
@@ -96,10 +93,10 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
     setIsEditing(false);
   };
 
-  const saveEditing = async () => {
+  const saveEditing = () => {
     if (!savedRecipe) return;
 
-    const updated = await saveRecipeEdits(recipe.videoId, {
+    const updated = saveRecipeEdits(recipe.videoId, {
       title: editedTitle !== recipe.title ? editedTitle : undefined,
       ingredients: JSON.stringify(editedIngredients) !== JSON.stringify(recipe.ingredients) ? editedIngredients : undefined,
       instructions: JSON.stringify(editedInstructions) !== JSON.stringify(recipe.instructions) ? editedInstructions : undefined,
@@ -115,8 +112,8 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
     setIsEditing(false);
   };
 
-  const resetEdits = async () => {
-    const updated = await clearRecipeEdits(recipe.videoId);
+  const resetEdits = () => {
+    const updated = clearRecipeEdits(recipe.videoId);
     if (updated) {
       setSavedRecipe(updated);
       onUpdate?.(updated);
@@ -124,13 +121,13 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
     setIsEditing(false);
   };
 
-  const handleTagToggle = async (tag: RecipeTag) => {
+  const handleTagToggle = (tag: RecipeTag) => {
     if (!savedRecipe) return;
 
     const hasTag = savedRecipe.tags.includes(tag);
     const updated = hasTag
-      ? await removeTagFromRecipe(recipe.videoId, tag)
-      : await addTagToRecipe(recipe.videoId, tag);
+      ? removeTagFromRecipe(recipe.videoId, tag)
+      : addTagToRecipe(recipe.videoId, tag);
 
     if (updated) {
       setSavedRecipe(updated);
@@ -138,10 +135,10 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
     }
   };
 
-  const handleAddNote = async () => {
+  const handleAddNote = () => {
     if (!newNote.trim() || !savedRecipe) return;
 
-    const updated = await addNoteToRecipe(recipe.videoId, newNote.trim());
+    const updated = addNoteToRecipe(recipe.videoId, newNote.trim());
     if (updated) {
       setSavedRecipe(updated);
       onUpdate?.(updated);
@@ -149,8 +146,8 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
     }
   };
 
-  const handleDeleteNote = async (noteId: string) => {
-    const updated = await removeNoteFromRecipe(recipe.videoId, noteId);
+  const handleDeleteNote = (noteId: string) => {
+    const updated = removeNoteFromRecipe(recipe.videoId, noteId);
     if (updated) {
       setSavedRecipe(updated);
       onUpdate?.(updated);
@@ -257,16 +254,16 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
     }
   };
 
-  const handleSave = async () => {
-    const saved = await saveRecipe(recipe);
+  const handleSave = () => {
+    const saved = saveRecipe(recipe);
     setSavedRecipe(saved);
     setIsSaved(true);
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 2000);
   };
 
-  const handleRemove = async () => {
-    await removeRecipe(recipe.videoId);
+  const handleRemove = () => {
+    removeRecipe(recipe.videoId);
     setIsSaved(false);
     setSavedRecipe(null);
     onRemove?.();

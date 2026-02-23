@@ -27,25 +27,25 @@ export function CollectionPicker({
     setCollections(getCollections());
   }, []);
 
-  const handleToggleCollection = async (collectionId: string) => {
+  const handleToggleCollection = (collectionId: string) => {
     const isSelected = selectedCollectionIds.includes(collectionId);
     if (isSelected) {
-      await removeRecipeFromCollection(recipeId, collectionId);
+      removeRecipeFromCollection(recipeId, collectionId);
       onUpdate(selectedCollectionIds.filter((id) => id !== collectionId));
     } else {
-      await addRecipeToCollection(recipeId, collectionId);
+      addRecipeToCollection(recipeId, collectionId);
       onUpdate([...selectedCollectionIds, collectionId]);
     }
   };
 
-  const handleCreateCollection = async () => {
+  const handleCreateCollection = () => {
     if (!newCollectionName.trim()) return;
     const newCollection = createCollection(newCollectionName.trim());
     setCollections([...collections, newCollection]);
     setNewCollectionName("");
     setShowCreateInput(false);
     // Auto-add recipe to new collection
-    await addRecipeToCollection(recipeId, newCollection.id);
+    addRecipeToCollection(recipeId, newCollection.id);
     onUpdate([...selectedCollectionIds, newCollection.id]);
   };
 

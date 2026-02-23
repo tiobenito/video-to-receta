@@ -9,10 +9,6 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     openai_api_key: str = ""  # For Whisper fallback
 
-    # Notion integration
-    notion_api_key: str = ""
-    notion_database_id: str = ""
-
     # App settings
     debug: bool = False
 

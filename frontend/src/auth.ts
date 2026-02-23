@@ -3,49 +3,48 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { DEV_USER } from "@/types/auth";
 
-// Comma-separated list of allowed Google emails
-const ALLOWED_EMAILS = (
-  process.env.ALLOWED_EMAILS || "benbattles7@gmail.com,elewarman@gmail.com"
-)
-  .split(",")
-  .map((e) => e.trim().toLowerCase())
-  .filter(Boolean);
+// Build providers list conditionally
+const providers = [];
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [
-    // Google OAuth for production
+// Google OAuth — only if credentials are configured
+if (process.env.GOOGLE_CLIENT_ID) {
+  providers.push(
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
-    // Dev credentials provider - only works in development
-    Credentials({
-      id: "dev-login",
-      name: "Dev Login",
-      credentials: {},
-      async authorize() {
-        // Only allow in development
-        if (process.env.NODE_ENV !== "development") {
-          return null;
-        }
-        return DEV_USER;
-      },
-    }),
-  ],
+    })
+  );
+}
+
+// Dev credentials provider — only works in development
+providers.push(
+  Credentials({
+    id: "dev-login",
+    name: "Dev Login",
+    credentials: {},
+    async authorize() {
+      if (process.env.NODE_ENV !== "development") {
+        return null;
+      }
+      return DEV_USER;
+    },
+  })
+);
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  providers,
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ account }) {
       // Always allow dev login
       if (account?.provider === "dev-login") return true;
-      // Check email whitelist for Google OAuth
-      if (!user.email) return false;
-      if (ALLOWED_EMAILS.length === 0) return true; // No whitelist = allow all (dev convenience)
-      return ALLOWED_EMAILS.includes(user.email.toLowerCase());
+      // Allow all Google users (no whitelist in demo mode)
+      return true;
     },
     authorized({ auth }) {
-      return !!auth?.user;
+      // Allow all access — no auth required for demo mode
+      return true;
     },
     async session({ session, token }) {
-      // Add user id to session
       if (token.sub) {
         session.user.id = token.sub;
       }
@@ -55,6 +54,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
     signIn: "/login",
   },
-  // Trust localhost in development
   trustHost: true,
 });

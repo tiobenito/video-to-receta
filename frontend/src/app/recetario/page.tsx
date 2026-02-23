@@ -8,7 +8,7 @@ import { RecipeCard } from "@/components/recipe-card";
 import { TagBadges } from "@/components/tag-picker";
 import { CollectionBadges } from "@/components/collection-picker";
 import { Header } from "@/components/header";
-import { getSavedRecipes, migrateFromLocalStorage, getFullRecipeByCloudId } from "@/lib/recipe-storage";
+import { getSavedRecipes } from "@/lib/recipe-storage";
 import { getCollections } from "@/lib/collection-storage";
 import { t, translateTag } from "@/lib/translations";
 
@@ -16,17 +16,12 @@ export default function RecetarioPage() {
   const [recipes, setRecipes] = useState<SavedRecipe[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<SavedRecipe | null>(null);
-  const [loadingRecipe, setLoadingRecipe] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<RecipeTag | null>(null);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
 
   useEffect(() => {
-    async function load() {
-      await migrateFromLocalStorage();
-      setRecipes(await getSavedRecipes());
-    }
-    load();
+    setRecipes(getSavedRecipes());
     setCollections(getCollections());
   }, []);
 
@@ -60,16 +55,8 @@ export default function RecetarioPage() {
     });
   }, [recipes, searchQuery, selectedTag, selectedCollection]);
 
-  const handleSelectRecipe = async (recipe: SavedRecipe) => {
-    const cloudId = (recipe as SavedRecipe & { _cloudId?: string })._cloudId;
-    if (!cloudId) {
-      setSelectedRecipe(recipe);
-      return;
-    }
-    setLoadingRecipe(true);
-    const full = await getFullRecipeByCloudId(cloudId);
-    setSelectedRecipe(full || recipe);
-    setLoadingRecipe(false);
+  const handleSelectRecipe = (recipe: SavedRecipe) => {
+    setSelectedRecipe(recipe);
   };
 
   const handleRemove = (videoId: string) => {
