@@ -1,46 +1,35 @@
 # Video a Receta (Video to Recipe - Spanish)
 
-Convert cooking videos from YouTube into formatted recipes - **targeting Spanish-speaking markets**.
+Convert cooking videos from YouTube and TikTok into formatted recipes - **Spanish-first**.
 
 **Repo:** https://github.com/tiobenito/video-to-receta
+**Live:** https://video-to-receta.vercel.app
 
 ---
 
-## Current Status: MVP COMPLETE ✅
+## Current Status: DEPLOYED (Demo Mode)
 
 Working features:
-- Spanish UI with i18n support (easy to add more languages)
+- Spanish UI with i18n support
 - Whisper transcription for accurate recipe extraction
 - Claude Haiku for recipe parsing (outputs in Spanish)
-- YouTube video support
-- Copy to clipboard
-- Recipe caching (SQLite)
-- Spanish SEO meta tags
-
----
-
-## Strategic Direction
-
-**Why Spanish-first:**
-- Main competitor (cooking.guru) is English-only with no i18n
-- Massive Spanish-speaking food TikTok audience (Robe Grill 19M, Erik Dominguez 5M+)
-- Lower SEO competition for Spanish keywords
-- One site serves Mexico, Spain, US Hispanic, all of Latin America
-
-**Multi-language future:**
-Once deployed, adding German/Portuguese/French is just:
-1. Add translations to `frontend/src/lib/translations.ts`
-2. Change `defaultLocale` or add URL-based routing
+- YouTube + TikTok video support
+- Recipe book (localStorage) with tags, notes, collections
+- Unit conversion (metric/imperial), servings scaler
+- PDF download, copy to clipboard, shopping list
+- Recipe caching (PostgreSQL)
+- No login required (auth is optional)
 
 ---
 
 ## Tech Stack
 
-- **Frontend:** Next.js 16 + TypeScript + Tailwind + shadcn/ui
-- **Backend:** FastAPI + Python
-- **Transcription:** OpenAI Whisper API (accurate, handles Spanish audio)
-- **Recipe Parsing:** Claude Haiku (outputs structured JSON in Spanish)
-- **Database:** SQLite (via Prisma) for caching
+- **Frontend:** Next.js 16 + TypeScript + Tailwind + shadcn/ui (Vercel)
+- **Backend:** FastAPI + Python (Railway)
+- **Transcription:** OpenAI Whisper API
+- **Recipe Parsing:** Claude Haiku (Anthropic)
+- **Database:** PostgreSQL (Railway) via Prisma for recipe caching
+- **Saved Recipes:** localStorage (browser-only, no account needed)
 
 ---
 
@@ -53,7 +42,9 @@ cp .env.example .env
 # Add your API keys to .env:
 #   ANTHROPIC_API_KEY=...
 #   OPENAI_API_KEY=...
+#   DATABASE_URL=file:./db/prisma/dev.db  (SQLite for local dev)
 poetry install
+poetry run prisma generate --schema=db/prisma/schema.prisma
 poetry run prisma db push --schema=db/prisma/schema.prisma
 poetry run uvicorn app.main:app --reload
 ```
@@ -61,6 +52,7 @@ poetry run uvicorn app.main:app --reload
 **Frontend:**
 ```bash
 cd frontend
+cp .env.example .env.local
 pnpm install
 pnpm dev
 ```
@@ -69,28 +61,55 @@ Then open http://localhost:3000
 
 ---
 
-## Files Overview
+## Architecture
+
+```
+Vercel (Frontend)              Railway (Backend)
+Next.js 16 + TypeScript        FastAPI + Python
+       |                              |
+       |  POST /api/v1/recipes/       |
+       |         /convert             |
+       +----------------------------->+
+                                      |
+                                Whisper (OpenAI)
+                                  + Claude Haiku
+                                      |
+                                PostgreSQL (cache)
+```
+
+Saved recipes live in the browser's localStorage. No account or backend needed for saving.
+
+---
+
+## Key Files
 
 ```
 frontend/
   src/
     app/
-      page.tsx              # Main page (Spanish)
-      layout.tsx            # SEO meta tags (Spanish)
+      page.tsx                # Main converter page
+      recetario/page.tsx      # Recipe book (saved recipes)
+      lista-compras/page.tsx  # Shopping list
     components/
-      recipe-converter.tsx  # URL input + loading states
-      recipe-card.tsx       # Recipe display + copy button
+      recipe-converter.tsx    # URL input + loading states
+      recipe-card.tsx         # Recipe display + actions
     lib/
-      translations.ts       # i18n strings (es + en)
+      recipe-storage.ts       # localStorage CRUD for saved recipes
+      collection-storage.ts   # Collections (localStorage)
+      translations.ts         # i18n strings (es + en)
 
 backend/
   app/
     services/
-      whisper.py          # Audio download + Whisper transcription
-      recipe_parser.py    # Claude prompt (Spanish output)
-      youtube.py          # Video ID extraction
+      whisper.py              # Audio download + Whisper transcription
+      recipe_parser.py        # Claude Haiku recipe extraction
+      youtube.py              # Video ID extraction
+      blog_scraper.py         # Recipe blog scraping
     api/v1/
-      recipes.py          # /convert endpoint
+      recipes.py              # POST /convert endpoint
+      health.py               # GET /health endpoint
+  db/prisma/
+    schema.prisma             # PostgreSQL schema (recipe cache)
 ```
 
 ---
@@ -100,39 +119,3 @@ backend/
 - **Whisper:** ~$0.006/min of audio (typical video = $0.05-0.10)
 - **Claude Haiku:** ~$0.001-0.002 per recipe
 - **Total:** ~$0.05-0.12 per conversion
-
----
-
-## Next Steps
-
-1. [ ] Pick and register domain (videoareceta.com? videoreceta.com?)
-2. [ ] Deploy (Vercel for frontend, Railway for backend)
-3. [ ] Add TikTok/Instagram support
-4. [ ] Add more languages
-5. [ ] Monetization (freemium or affiliate)
-
----
-
-## SEO Strategy
-
-**Target keywords (Spanish):**
-- "convertir video a receta"
-- "video de TikTok a receta"
-- "extraer receta de video"
-- "video de cocina a texto"
-- "receta de video de YouTube"
-
-**Current meta tags:**
-```html
-<html lang="es">
-<title>Video a Receta - Convierte Videos de Cocina en Recetas</title>
-<meta name="description" content="Convierte videos de cocina de YouTube, TikTok e Instagram en recetas estructuradas con ingredientes y pasos. Gratis y sin registro.">
-```
-
----
-
-## Monetization Ideas
-
-- **Freemium:** 5 free conversions/month, then $5/month
-- **Free + Affiliate:** Links to Amazon for ingredients/cookware
-- **Free + Premium:** Pay for PDF export, nutritional data, recipe saving
