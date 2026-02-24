@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserMenu } from "./user-menu";
 import { t } from "@/lib/translations";
 
 export function Header() {
@@ -50,9 +49,6 @@ export function Header() {
           >
             {t("shoppingList")}
           </Link>
-          <div className="ml-2 pl-4 border-l border-[var(--border-warm)]">
-            <UserMenu />
-          </div>
         </div>
       </div>
     </nav>
