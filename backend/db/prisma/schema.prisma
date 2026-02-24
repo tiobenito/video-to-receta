@@ -27,6 +27,7 @@ model Recipe {
   prepTime     String?
   cookTime     String?
   servings     String?
+  tags         String?  // JSON string: Array of tag strings
 
   // Metadata
   createdAt   DateTime @default(now())

@@ -75,6 +75,7 @@ async def convert_video_to_recipe(request: ConvertRequest):
             prepTime=existing.prepTime,
             cookTime=existing.cookTime,
             servings=existing.servings,
+            tags=json.loads(existing.tags) if getattr(existing, "tags", None) else [],
             cached=True,
         )
 
@@ -108,6 +109,7 @@ async def _convert_blog(url: str) -> RecipeResponse:
             "prepTime": recipe_data.get("prepTime"),
             "cookTime": recipe_data.get("cookTime"),
             "servings": recipe_data.get("servings"),
+            "tags": json.dumps(recipe_data.get("tags", [])),
         }
     )
 
@@ -169,6 +171,7 @@ async def _convert_video(url: str) -> RecipeResponse:
             "prepTime": recipe_data.get("prepTime"),
             "cookTime": recipe_data.get("cookTime"),
             "servings": recipe_data.get("servings"),
+            "tags": json.dumps(recipe_data.get("tags", [])),
         }
     )
 
