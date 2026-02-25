@@ -5,10 +5,15 @@ Supports:
 - TikTok (tiktok.com, vm.tiktok.com)
 """
 
+import logging
 import re
 from dataclasses import dataclass
 from enum import Enum
 from urllib.parse import parse_qs, urlparse
+
+import httpx
+
+logger = logging.getLogger(__name__)
 
 
 class Platform(Enum):
@@ -133,6 +138,39 @@ def extract_tiktok_info(url: str) -> tuple[str, str | None]:
     raise InvalidURLError(f"Could not extract TikTok video ID from: {url}")
 
 
+def resolve_tiktok_short_url(url: str) -> str:
+    """
+    Resolve TikTok short URLs (vm.tiktok.com, /t/) to their canonical form
+    by following HTTP redirects.
+
+    TikTok short URLs redirect to the full /@user/video/ID format.
+    Without resolving, yt-dlp can silently download the wrong video.
+
+    Returns:
+        Canonical URL, or original URL if resolution fails.
+    """
+    try:
+        with httpx.Client(
+            follow_redirects=True,
+            timeout=10.0,
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/120.0.0.0 Safari/537.36"
+                ),
+            },
+        ) as client:
+            response = client.head(url)
+            resolved = str(response.url)
+            if resolved != url:
+                logger.info("Resolved TikTok short URL: %s -> %s", url, resolved)
+            return resolved
+    except Exception as e:
+        logger.warning("Failed to resolve TikTok short URL %s: %s", url, e)
+        return url
+
+
 def extract_video_info(url: str) -> VideoInfo:
     """
     Extract video information from any supported platform URL.
@@ -162,6 +200,21 @@ def extract_video_info(url: str) -> VideoInfo:
     elif platform == Platform.TIKTOK:
         video_id, creator_username = extract_tiktok_info(url)
         download_url = url
+
+        # Short URLs (vm.tiktok.com, /t/) rely on redirect chains that can
+        # resolve to the wrong video. Resolve to canonical form first.
+        if video_id.startswith("short_"):
+            resolved_url = resolve_tiktok_short_url(url)
+            if resolved_url != url:
+                try:
+                    video_id, resolved_username = extract_tiktok_info(resolved_url)
+                    download_url = resolved_url
+                    if resolved_username and not creator_username:
+                        creator_username = resolved_username
+                except InvalidURLError:
+                    # Resolved URL isn't in a parseable format — still use it for download
+                    download_url = resolved_url
+
         if creator_username:
             creator_url = f"https://www.tiktok.com/@{creator_username}"
 

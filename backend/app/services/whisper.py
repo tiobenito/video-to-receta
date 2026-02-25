@@ -5,6 +5,7 @@ Supports downloading and transcribing audio from:
 - TikTok
 """
 
+import logging
 import os
 import tempfile
 from pathlib import Path
@@ -13,6 +14,8 @@ import yt_dlp
 from openai import OpenAI
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class WhisperError(Exception):
@@ -59,8 +62,16 @@ def download_audio_from_url(url: str, video_id: str) -> str:
     }
 
     try:
+        logger.info("Downloading audio from: %s (video_id=%s)", url, video_id)
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+            info = ydl.extract_info(url, download=True)
+            if info:
+                logger.info(
+                    "Downloaded: title=%s, uploader=%s, webpage_url=%s",
+                    info.get("title"),
+                    info.get("uploader"),
+                    info.get("webpage_url"),
+                )
 
         # Find the downloaded audio file
         expected_path = os.path.join(temp_dir, f"{safe_id}.mp3")

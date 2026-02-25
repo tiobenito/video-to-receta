@@ -2,8 +2,14 @@
 
 Convert cooking videos from YouTube and TikTok into formatted recipes - **Spanish-first**.
 
-**Repo:** https://github.com/tiobenito/video-to-receta
-**Live:** https://video-to-receta.vercel.app
+## Repository
+
+- **GitHub:** tiobenito/video-to-receta
+- **Account:** personal (tiobenito)
+- **Token env var:** `$GITHUB_PERSONAL_ACCESS_TOKEN_TIOBENITO`
+- **Deploy:** Frontend on Vercel, Backend on Railway
+- **Live URL:** https://video2receta.vercel.app
+- **Backend URL:** https://video-to-receta-production.up.railway.app
 
 ---
 
