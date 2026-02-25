@@ -7,22 +7,29 @@ Supports:
 """
 
 import json
+import logging
 
 from fastapi import APIRouter, HTTPException
 
 from app.core.database import db
 from app.models.recipe import ConvertRequest, ErrorResponse, RecipeResponse
-from app.services.recipe_parser import RecipeParseError, parse_recipe
-from app.services.whisper import WhisperError, transcribe_from_url
-from app.services.video_platform import (
-    VideoError,
-    UnsupportedPlatformError,
-    InvalidURLError,
-    extract_video_info,
-    Platform,
-    detect_url_type,
-)
 from app.services.blog_scraper import BlogScrapeError, extract_recipe_from_blog
+from app.services.recipe_parser import RecipeParseError, parse_recipe
+from app.services.video_platform import (
+    InvalidURLError,
+    Platform,
+    UnsupportedPlatformError,
+    VideoError,
+    detect_url_type,
+    extract_video_info,
+)
+from app.services.whisper import WhisperError, transcribe_from_url
+
+logger = logging.getLogger(__name__)
+
+# Minimum transcript length (chars) to consider useful for recipe extraction.
+# Below this, the audio is likely music/silence and Claude will hallucinate.
+MIN_TRANSCRIPT_LENGTH = 50
 
 router = APIRouter()
 
@@ -141,7 +148,19 @@ async def _convert_video(url: str) -> RecipeResponse:
     except VideoError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # Transcribe with Whisper
+    # TikTok: try page scraping first. Many TikTok cooking videos are
+    # visual-only (music + cuts, no narration), so Whisper produces garbage
+    # and Claude hallucinates a recipe. The page description often has the
+    # actual recipe text.
+    if video_info.platform == Platform.TIKTOK:
+        try:
+            recipe_data = await extract_recipe_from_blog(url)
+            logger.info("TikTok recipe extracted via page scraping (skipped audio)")
+            return await _save_and_respond(url, video_info, recipe_data)
+        except (BlogScrapeError, RecipeParseError):
+            logger.info("TikTok page scraping failed, falling back to audio transcription")
+
+    # Audio transcription pipeline (primary for YouTube, fallback for TikTok)
     try:
         transcript = transcribe_from_url(video_info.download_url, video_info.video_id)
     except WhisperError as e:
@@ -150,13 +169,38 @@ async def _convert_video(url: str) -> RecipeResponse:
             detail=str(e),
         )
 
+    # Guard against garbage transcripts (music-only videos, background noise).
+    # Without this, Claude hallucinates a recipe from nonsense text.
+    if len(transcript.strip()) < MIN_TRANSCRIPT_LENGTH:
+        logger.warning(
+            "Transcript too short (%d chars) for %s — likely no narration",
+            len(transcript.strip()),
+            url,
+        )
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                "El video no contiene suficiente narración para extraer una receta. "
+                "Intenta con un video donde el chef explique los pasos."
+            ),
+        )
+
     # Parse recipe from transcript
     try:
         recipe_data = await parse_recipe(transcript)
     except RecipeParseError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
-    # Save to database (using youtubeUrl field for all platforms for backwards compat)
+    return await _save_and_respond(url, video_info, recipe_data, transcript)
+
+
+async def _save_and_respond(
+    url: str,
+    video_info,
+    recipe_data: dict,
+    transcript: str | None = None,
+) -> RecipeResponse:
+    """Save recipe to database and build response."""
     recipe = await db.recipe.create(
         data={
             "youtubeUrl": url,
