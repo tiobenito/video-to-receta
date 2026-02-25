@@ -155,8 +155,12 @@ async def _convert_video(url: str) -> RecipeResponse:
     if video_info.platform == Platform.TIKTOK:
         try:
             recipe_data = await extract_recipe_from_blog(url)
-            logger.info("TikTok recipe extracted via page scraping (skipped audio)")
-            return await _save_and_respond(url, video_info, recipe_data)
+            # Only accept if we got actual content — TikTok pages are JS-heavy
+            # so the scraper often returns empty/garbage that Claude can't use.
+            if recipe_data.get("ingredients") and recipe_data.get("instructions"):
+                logger.info("TikTok recipe extracted via page scraping (skipped audio)")
+                return await _save_and_respond(url, video_info, recipe_data)
+            logger.info("TikTok page scraping returned empty recipe, falling back to audio")
         except (BlogScrapeError, RecipeParseError):
             logger.info("TikTok page scraping failed, falling back to audio transcription")
 
