@@ -60,5 +60,9 @@ def fetch_youtube_transcript(video_id: str) -> str | None:
         return None
 
     except Exception as e:
-        logger.info("YouTube transcript API unavailable (%s), will try Whisper", type(e).__name__)
+        logger.warning(
+            "YouTube transcript API failed (%s): %s — falling back to Whisper",
+            type(e).__name__,
+            str(e)[:500],
+        )
         return None
