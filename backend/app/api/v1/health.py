@@ -30,15 +30,20 @@ async def debug_transcript(video_id: str):
 
     try:
         from youtube_transcript_api import YouTubeTranscriptApi
-        from youtube_transcript_api.proxies import GenericProxyConfig
 
-        proxy_config = None
+        http_client = None
         if key:
+            import requests
+            import warnings
+            from urllib3.exceptions import InsecureRequestWarning
             proxy_url = f"http://scraperapi:{key}@proxy-server.scraperapi.com:8001"
-            proxy_config = GenericProxyConfig(http_url=proxy_url, https_url=proxy_url)
             result["proxy_url_prefix"] = proxy_url[:40] + "..."
+            http_client = requests.Session()
+            http_client.proxies = {"http": proxy_url, "https": proxy_url}
+            http_client.verify = False
+            warnings.filterwarnings("ignore", category=InsecureRequestWarning)
 
-        api = YouTubeTranscriptApi(proxy_config=proxy_config)
+        api = YouTubeTranscriptApi(http_client=http_client)
         snippets = api.fetch(video_id, languages=["es", "es-419", "en", "en-US"])
         parts = [s.text if hasattr(s, "text") else s.get("text", "") for s in snippets]
         transcript = " ".join(p for p in parts if p).strip()
