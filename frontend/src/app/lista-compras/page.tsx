@@ -2,9 +2,10 @@
 
 import { ShoppingList } from "@/components/shopping-list";
 import { Header } from "@/components/header";
-import { t } from "@/lib/translations";
+import { useLanguage } from "@/lib/language-context";
 
 export default function ListaComprasPage() {
+  const { t } = useLanguage();
   return (
     <div className="min-h-screen bg-[var(--cream)]">
       {/* Top stripe */}

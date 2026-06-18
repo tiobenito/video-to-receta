@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Recipe, SavedRecipe, Ingredient, Instruction, RecipeTag } from "@/types/recipe";
 import { useState, useEffect } from "react";
-import { t } from "@/lib/translations";
+import { useLanguage } from "@/lib/language-context";
 import {
   saveRecipe,
   isRecipeSaved,
@@ -36,6 +36,7 @@ function isSavedRecipe(recipe: Recipe | SavedRecipe): recipe is SavedRecipe {
 }
 
 export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: RecipeCardProps) {
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [justSaved, setJustSaved] = useState(false);

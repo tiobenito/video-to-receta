@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { Ingredient } from "@/types/recipe";
 import { NutritionEstimate } from "@/types/nutrition";
 import { calculatePerServingNutrition } from "@/lib/nutrition-calculator";
-import { t } from "@/lib/translations";
+import { useLanguage } from "@/lib/language-context";
 
 interface NutritionDisplayProps {
   ingredients: Ingredient[];
@@ -17,6 +17,7 @@ export function NutritionDisplay({
   servings,
   scaleFactor = 1,
 }: NutritionDisplayProps) {
+  const { t } = useLanguage();
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Parse servings count

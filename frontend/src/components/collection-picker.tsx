@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Collection } from "@/types/collection";
 import { getCollections, createCollection, deleteCollection } from "@/lib/collection-storage";
 import { addRecipeToCollection, removeRecipeFromCollection } from "@/lib/recipe-storage";
-import { t } from "@/lib/translations";
+import { useLanguage } from "@/lib/language-context";
 
 interface CollectionPickerProps {
   recipeId: string;
@@ -18,6 +18,7 @@ export function CollectionPicker({
   selectedCollectionIds,
   onUpdate,
 }: CollectionPickerProps) {
+  const { t } = useLanguage();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState("");

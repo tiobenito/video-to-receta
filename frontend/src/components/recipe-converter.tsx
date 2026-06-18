@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { Recipe, ErrorResponse } from "@/types/recipe";
 import { RecipeCard } from "./recipe-card";
-import { t } from "@/lib/translations";
+import { useLanguage } from "@/lib/language-context";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 export function RecipeConverter() {
+  const { t } = useLanguage();
   const [url, setUrl] = useState("");
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(false);

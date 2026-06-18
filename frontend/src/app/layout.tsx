@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, DM_Serif_Display } from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
+import { LanguageProvider } from "@/lib/language-context";
 import "./globals.css";
 
 const inter = DM_Sans({
@@ -45,7 +46,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${lora.variable} font-sans antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

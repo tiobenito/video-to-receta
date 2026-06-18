@@ -2,9 +2,10 @@
 
 import { RecipeConverter } from "@/components/recipe-converter";
 import { Header } from "@/components/header";
-import { t } from "@/lib/translations";
+import { useLanguage } from "@/lib/language-context";
 
 export default function Home() {
+  const { t, locale } = useLanguage();
   return (
     <div className="min-h-screen bg-[var(--cream)]">
       {/* Top stripe */}
@@ -17,7 +18,11 @@ export default function Home() {
         {/* Hero section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-[var(--text-dark)]">
-            Video <span className="text-[var(--teal)]">a</span> Receta
+            {locale === "en" ? (
+              <>Video <span className="text-[var(--teal)]">to</span> Recipe</>
+            ) : (
+              <>Video <span className="text-[var(--teal)]">a</span> Receta</>
+            )}
           </h1>
           <p className="text-lg text-[var(--text-muted)] max-w-md mx-auto">
             {t("description")}

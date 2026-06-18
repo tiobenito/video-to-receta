@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { t } from "@/lib/translations";
+import { useLanguage } from "@/lib/language-context";
 
 export function Header() {
   const pathname = usePathname();
+  const { t, locale, toggle } = useLanguage();
 
   const isActive = (path: string) => pathname === path;
 
@@ -49,6 +50,13 @@ export function Header() {
           >
             {t("shoppingList")}
           </Link>
+
+          <button
+            onClick={toggle}
+            className="text-sm font-medium px-2.5 py-1 rounded-md border border-[var(--border-warm)] text-[var(--text-muted)] hover:border-[var(--teal)] hover:text-[var(--teal)] transition-colors"
+          >
+            {locale === "en" ? "ES" : "EN"}
+          </button>
         </div>
       </div>
     </nav>

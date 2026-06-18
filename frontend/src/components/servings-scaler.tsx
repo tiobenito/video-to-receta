@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { t } from "@/lib/translations";
+import { useLanguage } from "@/lib/language-context";
 
 interface ServingsScalerProps {
   originalServings: string | null;
@@ -15,6 +15,7 @@ export function ServingsScaler({
   scaleFactor,
   onScaleChange,
 }: ServingsScalerProps) {
+  const { t } = useLanguage();
   // Parse original servings to get a number
   const parseServings = (servings: string | null): number | null => {
     if (!servings) return null;

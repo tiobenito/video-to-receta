@@ -10,9 +10,10 @@ import { CollectionBadges } from "@/components/collection-picker";
 import { Header } from "@/components/header";
 import { getSavedRecipes } from "@/lib/recipe-storage";
 import { getCollections } from "@/lib/collection-storage";
-import { t, translateTag } from "@/lib/translations";
+import { useLanguage } from "@/lib/language-context";
 
 export default function RecetarioPage() {
+  const { t, translateTag } = useLanguage();
   const [recipes, setRecipes] = useState<SavedRecipe[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<SavedRecipe | null>(null);

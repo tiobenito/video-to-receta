@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video a Receta — Design A: Terracotta</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --terra: #B83A1E;
+    --terra-light: #D4501F;
+    --terra-pale: #F2D5CC;
+    --amber: #E8A230;
+    --amber-light: #F5C354;
+    --bg: #F9F3EA;
+    --bg-alt: #F2EAD8;
+    --card: #FFFCF6;
+    --text: #2C1A0E;
+    --text-body: #4A3520;
+    --text-muted: #8A7060;
+    --border: #E0CEBA;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Top stripe */
+  .stripe {
+    height: 5px;
+    background: linear-gradient(90deg, var(--terra) 0%, var(--amber) 50%, var(--terra) 100%);
+  }
+
+  /* Nav */
+  nav {
+    background: var(--text);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    color: var(--terra-pale);
+    font-size: 20px;
+    letter-spacing: 0.02em;
+  }
+  .nav-logo span {
+    color: var(--amber-light);
+  }
+  .nav-links {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .nav-links a:hover { color: var(--amber-light); }
+
+  /* Hero input section */
+  .hero {
+    background: var(--bg-alt);
+    padding: 64px 32px 56px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--terra);
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+    line-height: 1.15;
+  }
+  .hero p {
+    font-size: 16px;
+    color: var(--text-muted);
+    margin-bottom: 36px;
+    font-weight: 300;
+  }
+  .input-row {
+    display: flex;
+    gap: 0;
+    max-width: 620px;
+    margin: 0 auto;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(44, 26, 14, 0.12);
+  }
+  .url-input {
+    flex: 1;
+    padding: 16px 20px;
+    font-size: 15px;
+    border: none;
+    background: var(--card);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+  }
+  .url-input::placeholder { color: var(--text-muted); }
+  .btn-convert {
+    background: var(--terra);
+    color: white;
+    border: none;
+    padding: 16px 28px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: background 0.15s;
+  }
+  .btn-convert:hover { background: var(--terra-light); }
+
+  .platforms {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .platform-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: rgba(44,26,14,0.06);
+    border: 1px solid var(--border);
+  }
+
+  /* Main layout */
+  .main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 32px;
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 32px;
+    align-items: start;
+  }
+
+  /* Recipe card */
+  .recipe-card {
+    background: var(--card);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(44,26,14,0.06);
+  }
+  .recipe-card-header {
+    background: var(--terra);
+    padding: 24px 28px;
+    position: relative;
+  }
+  .recipe-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.9);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 100px;
+    margin-bottom: 10px;
+  }
+  .recipe-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: white;
+    line-height: 1.25;
+    margin-bottom: 8px;
+  }
+  .recipe-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+  }
+  .meta-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--amber-light);
+  }
+
+  .recipe-body {
+    padding: 28px;
+  }
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--terra);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .ingredients-list {
+    list-style: none;
+    margin-bottom: 28px;
+  }
+  .ingredients-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    font-size: 14px;
+    color: var(--text-body);
+    border-bottom: 1px solid rgba(224,206,186,0.4);
+  }
+  .ing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--amber);
+    flex-shrink: 0;
+  }
+  .ing-amount {
+    font-weight: 600;
+    color: var(--text);
+    min-width: 60px;
+  }
+
+  .steps-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--terra);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-text {
+    font-size: 14px;
+    color: var(--text-body);
+    line-height: 1.6;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .sidebar-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 1px 6px rgba(44,26,14,0.04);
+  }
+  .sidebar-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    margin-bottom: 14px;
+    color: var(--text);
+  }
+  .saved-recipe {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .saved-item {
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: var(--bg-alt);
+    border-left: 3px solid var(--terra);
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .saved-item:hover { transform: translateX(2px); }
+  .saved-item-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .saved-item-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tag {
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--terra-pale);
+    color: var(--terra);
+  }
+
+  .btn-save {
+    width: 100%;
+    background: var(--amber);
+    color: var(--text);
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.15s;
+  }
+  .btn-save:hover { background: var(--amber-light); }
+
+  /* Design label */
+  .design-label {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--text);
+    color: var(--terra-pale);
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+
+<nav>
+  <div class="nav-logo">Video a <span>Receta</span></div>
+  <ul class="nav-links">
+    <li><a href="#">Convertir</a></li>
+    <li><a href="#">Mis Recetas</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">Recetas al instante</div>
+  <h1>Pega el video,<br>obtén la receta</h1>
+  <p>YouTube, TikTok o cualquier blog de cocina — en español, en segundos.</p>
+
+  <div class="input-row">
+    <input class="url-input" type="text" placeholder="https://www.youtube.com/watch?v=..." />
+    <button class="btn-convert">Convertir →</button>
+  </div>
+
+  <div class="platforms">
+    <span class="platform-badge">▶ YouTube</span>
+    <span class="platform-badge">♪ TikTok</span>
+    <span class="platform-badge">✦ Blogs</span>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Recipe -->
+  <div>
+    <div class="recipe-card">
+      <div class="recipe-card-header">
+        <div class="recipe-badge">YouTube · Babish Culinary Universe</div>
+        <div class="recipe-title">Pasta Carbonara Auténtica</div>
+        <div class="recipe-meta">
+          <span class="meta-item"><span class="meta-dot"></span>15 min prep</span>
+          <span class="meta-item"><span class="meta-dot"></span>20 min cocción</span>
+          <span class="meta-item"><span class="meta-dot"></span>2 porciones</span>
+        </div>
+      </div>
+
+      <div class="recipe-body">
+        <div class="section-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li><span class="ing-dot"></span><span class="ing-amount">200 g</span>Spaghetti o rigatoni</li>
+          <li><span class="ing-dot"></span><span class="ing-amount">150 g</span>Guanciale o panceta</li>
+          <li><span class="ing-dot"></span><span class="ing-amount">3</span>Yemas de huevo + 1 huevo entero</li>
+          <li><span class="ing-dot"></span><span class="ing-amount">80 g</span>Pecorino Romano rallado</li>
+          <li><span class="ing-dot"></span><span class="ing-amount">al gusto</span>Pimienta negra molida</li>
+        </ul>
+
+        <div class="section-label">Preparación</div>
+        <ol class="steps-list">
+          <li class="step">
+            <span class="step-num">1</span>
+            <span class="step-text">Cocina la pasta en agua bien salada hasta que esté al dente, reserva 1 taza de agua de cocción.</span>
+          </li>
+          <li class="step">
+            <span class="step-num">2</span>
+            <span class="step-text">Dora el guanciale en una sartén grande a fuego medio hasta que quede crujiente. Retira del fuego.</span>
+          </li>
+          <li class="step">
+            <span class="step-num">3</span>
+            <span class="step-text">Mezcla las yemas, el huevo entero y el pecorino hasta obtener una crema. Añade pimienta generosamente.</span>
+          </li>
+          <li class="step">
+            <span class="step-num">4</span>
+            <span class="step-text">Con el fuego apagado, agrega la pasta a la sartén, vierte la mezcla de huevo y emulsiona con el agua de cocción poco a poco.</span>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-card">
+      <button class="btn-save">Guardar receta</button>
+    </div>
+
+    <div class="sidebar-card">
+      <div class="tag-list">
+        <span class="tag">italiana</span>
+        <span class="tag">pasta</span>
+        <span class="tag">30 min</span>
+        <span class="tag">fácil</span>
+      </div>
+    </div>
+
+    <div class="sidebar-card">
+      <h3>Mis Recetas</h3>
+      <div class="saved-recipe">
+        <div class="saved-item">
+          <div class="saved-item-title">Pasta Carbonara Auténtica</div>
+          <div class="saved-item-meta">Guardada hoy</div>
+        </div>
+        <div class="saved-item" style="border-color: var(--amber);">
+          <div class="saved-item-title">Tacos de Pollo al Pastor</div>
+          <div class="saved-item-meta">Guardada hace 3 días</div>
+        </div>
+        <div class="saved-item">
+          <div class="saved-item-title">Caldo Tlalpeño</div>
+          <div class="saved-item-meta">Guardada hace 1 semana</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="design-label">Design A — Terracotta</div>
+</body>
+</html>

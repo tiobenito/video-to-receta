@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video a Receta — Design B: Midnight Pantry</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #14100D;
+    --bg-surface: #1F1912;
+    --bg-card: #28211A;
+    --bg-card-hover: #332A21;
+    --gold: #C9943F;
+    --gold-light: #E4B865;
+    --gold-pale: rgba(201,148,63,0.12);
+    --rust: #B05A2A;
+    --text: #F0E6D3;
+    --text-body: #C8B89A;
+    --text-muted: #7A6A52;
+    --border: rgba(201,148,63,0.15);
+    --border-strong: rgba(201,148,63,0.3);
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Gold top line */
+  .stripe {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  /* Nav */
+  nav {
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--text);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+  }
+  .nav-logo em {
+    font-style: italic;
+    color: var(--gold);
+  }
+  .nav-links {
+    display: flex;
+    gap: 28px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color 0.15s;
+  }
+  .nav-links a:hover { color: var(--gold-light); }
+
+  /* Hero */
+  .hero {
+    padding: 80px 40px 64px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 300px;
+    background: radial-gradient(ellipse, rgba(201,148,63,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 52px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.15;
+    margin-bottom: 14px;
+    letter-spacing: 0.01em;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+  .hero p {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 40px;
+    font-weight: 300;
+    letter-spacing: 0.02em;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 0;
+    max-width: 600px;
+    margin: 0 auto;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .url-input {
+    flex: 1;
+    padding: 16px 20px;
+    font-size: 14px;
+    border: none;
+    background: var(--bg-card);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+  }
+  .url-input::placeholder { color: var(--text-muted); }
+  .btn-convert {
+    background: var(--gold);
+    color: var(--bg);
+    border: none;
+    padding: 16px 28px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: background 0.15s;
+  }
+  .btn-convert:hover { background: var(--gold-light); }
+
+  .platforms {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .platform-badge {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .platform-sep {
+    color: var(--border-strong);
+  }
+
+  /* Main */
+  .main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 40px;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 28px;
+    align-items: start;
+  }
+
+  /* Recipe card */
+  .recipe-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-card);
+  }
+  .recipe-card-header {
+    padding: 32px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .recipe-card-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gold), var(--rust));
+  }
+  .recipe-source {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+  .recipe-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 16px;
+    letter-spacing: 0.01em;
+  }
+  .recipe-meta {
+    display: flex;
+    gap: 0;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+  .meta-item {
+    flex: 1;
+    text-align: center;
+    border-right: 1px solid var(--border);
+    padding: 0 16px;
+  }
+  .meta-item:last-child { border-right: none; }
+  .meta-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .meta-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gold-light);
+  }
+
+  .recipe-body {
+    padding: 32px;
+  }
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .ingredients-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-bottom: 32px;
+  }
+  .ing-item {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(201,148,63,0.08);
+    display: flex;
+    gap: 10px;
+    font-size: 14px;
+  }
+  .ing-amount {
+    color: var(--gold-light);
+    font-weight: 600;
+    min-width: 50px;
+  }
+  .ing-name {
+    color: var(--text-body);
+  }
+
+  .steps-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px;
+    background: rgba(201,148,63,0.04);
+    border-radius: 6px;
+    border-left: 2px solid var(--gold);
+  }
+  .step-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--gold);
+    line-height: 1;
+    min-width: 24px;
+    padding-top: 2px;
+  }
+  .step-text {
+    font-size: 14px;
+    color: var(--text-body);
+    line-height: 1.65;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .sidebar-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .sidebar-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 14px;
+    letter-spacing: 0.02em;
+  }
+
+  .btn-save {
+    width: 100%;
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--border-strong);
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .btn-save:hover {
+    background: var(--gold-pale);
+    border-color: var(--gold);
+  }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tag {
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--gold-pale);
+    color: var(--gold-light);
+    border: 1px solid rgba(201,148,63,0.2);
+  }
+
+  .saved-recipe {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .saved-item {
+    padding: 10px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .saved-item:hover { background: var(--bg-card-hover); }
+  .saved-item-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .saved-item-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .saved-active { background: var(--gold-pale) !important; border-left: 2px solid var(--gold); }
+
+  .design-label {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--gold);
+    color: var(--bg);
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+
+<nav>
+  <div class="nav-logo">Video a <em>Receta</em></div>
+  <ul class="nav-links">
+    <li><a href="#">Convertir</a></li>
+    <li><a href="#">Mis Recetas</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">Transcripción · Traducción · Receta</div>
+  <h1>Del video<br>a la <em>mesa</em></h1>
+  <p>Pega cualquier video de cocina y obtén la receta completa en español.</p>
+
+  <div class="input-row">
+    <input class="url-input" type="text" placeholder="https://www.youtube.com/watch?v=..." />
+    <button class="btn-convert">Convertir</button>
+  </div>
+
+  <div class="platforms">
+    <span class="platform-badge">YouTube</span>
+    <span class="platform-sep">·</span>
+    <span class="platform-badge">TikTok</span>
+    <span class="platform-sep">·</span>
+    <span class="platform-badge">Blogs</span>
+  </div>
+</div>
+
+<div class="main">
+  <div>
+    <div class="recipe-card">
+      <div class="recipe-card-header">
+        <div class="recipe-source">YouTube · Babish Culinary Universe</div>
+        <div class="recipe-title">Pasta Carbonara Auténtica</div>
+        <div class="recipe-meta">
+          <div class="meta-item">
+            <div class="meta-label">Preparación</div>
+            <div class="meta-value">15 min</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Cocción</div>
+            <div class="meta-value">20 min</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Porciones</div>
+            <div class="meta-value">2</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="recipe-body">
+        <div class="section-label">Ingredientes</div>
+        <div class="ingredients-grid">
+          <div class="ing-item"><span class="ing-amount">200 g</span><span class="ing-name">Spaghetti</span></div>
+          <div class="ing-item"><span class="ing-amount">150 g</span><span class="ing-name">Guanciale</span></div>
+          <div class="ing-item"><span class="ing-amount">3</span><span class="ing-name">Yemas de huevo</span></div>
+          <div class="ing-item"><span class="ing-amount">1</span><span class="ing-name">Huevo entero</span></div>
+          <div class="ing-item"><span class="ing-amount">80 g</span><span class="ing-name">Pecorino Romano</span></div>
+          <div class="ing-item"><span class="ing-amount">al gusto</span><span class="ing-name">Pimienta negra</span></div>
+        </div>
+
+        <div class="section-label">Preparación</div>
+        <ol class="steps-list">
+          <li class="step">
+            <span class="step-num">I</span>
+            <span class="step-text">Cocina la pasta en agua bien salada hasta que esté al dente, reserva 1 taza de agua de cocción.</span>
+          </li>
+          <li class="step">
+            <span class="step-num">II</span>
+            <span class="step-text">Dora el guanciale en una sartén grande a fuego medio hasta que quede crujiente. Retira del fuego.</span>
+          </li>
+          <li class="step">
+            <span class="step-num">III</span>
+            <span class="step-text">Mezcla las yemas, el huevo y el pecorino hasta obtener una crema. Añade pimienta generosamente.</span>
+          </li>
+          <li class="step">
+            <span class="step-num">IV</span>
+            <span class="step-text">Con el fuego apagado, agrega la pasta, vierte la mezcla de huevo y emulsiona con el agua de cocción poco a poco.</span>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="sidebar-card">
+      <button class="btn-save">Guardar receta</button>
+    </div>
+
+    <div class="sidebar-card">
+      <div class="tag-list">
+        <span class="tag">italiana</span>
+        <span class="tag">pasta</span>
+        <span class="tag">30 min</span>
+        <span class="tag">fácil</span>
+      </div>
+    </div>
+
+    <div class="sidebar-card">
+      <h3>Mis Recetas</h3>
+      <div class="saved-recipe">
+        <div class="saved-item saved-active">
+          <div class="saved-item-title">Pasta Carbonara Auténtica</div>
+          <div class="saved-item-meta">Guardada hoy</div>
+        </div>
+        <div class="saved-item">
+          <div class="saved-item-title">Tacos de Pollo al Pastor</div>
+          <div class="saved-item-meta">Guardada hace 3 días</div>
+        </div>
+        <div class="saved-item">
+          <div class="saved-item-title">Caldo Tlalpeño</div>
+          <div class="saved-item-meta">Guardada hace 1 semana</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="design-label">Design B — Midnight Pantry</div>
+</body>
+</html>

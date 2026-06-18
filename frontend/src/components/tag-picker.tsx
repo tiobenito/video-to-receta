@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { RecipeTag, RECIPE_TAGS } from "@/types/recipe";
-import { t, translateTag } from "@/lib/translations";
+import { useLanguage } from "@/lib/language-context";
 
 interface TagPickerProps {
   selectedTags: RecipeTag[];
@@ -11,6 +11,7 @@ interface TagPickerProps {
 }
 
 export function TagPicker({ selectedTags, onTagToggle, showAddButton = true }: TagPickerProps) {
+  const { t, translateTag } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -81,6 +82,7 @@ export function TagPicker({ selectedTags, onTagToggle, showAddButton = true }: T
 
 // Compact tag display for thumbnails
 export function TagBadges({ tags }: { tags: RecipeTag[] }) {
+  const { translateTag } = useLanguage();
   if (tags.length === 0) return null;
 
   return (

@@ -15,9 +15,10 @@ import {
   getGroupedItems,
   addManualItem,
 } from "@/lib/shopping-storage";
-import { t } from "@/lib/translations";
+import { useLanguage } from "@/lib/language-context";
 
 export function ShoppingList() {
+  const { t } = useLanguage();
   const [list, setList] = useState<ShoppingListType>({ items: [], hiddenRecipeIds: [], updatedAt: "" });
   const [recipes, setRecipes] = useState<{ id: string; title: string; itemCount: number }[]>([]);
   const [newItem, setNewItem] = useState("");
