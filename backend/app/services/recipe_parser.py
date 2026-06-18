@@ -126,7 +126,7 @@ async def parse_recipe(transcript: str, language: str = "es") -> dict[str, Any]:
 
     try:
         message = client.messages.create(
-            model="claude-3-5-haiku-20241022",
+            model="claude-haiku-4-5-20251001",
             max_tokens=2048,
             messages=[
                 {

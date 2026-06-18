@@ -6,7 +6,7 @@ from fastapi import APIRouter
 
 router = APIRouter()
 
-VERSION = "5"
+VERSION = "6"
 
 
 @router.get("/health")
