@@ -13,13 +13,14 @@ import os
 logger = logging.getLogger(__name__)
 
 
-def _build_proxies() -> dict | None:
-    """Return ScraperAPI proxy config if the key is configured, else None."""
+def _build_proxy_config():
+    """Return a GenericProxyConfig for ScraperAPI if the key is configured, else None."""
     key = os.environ.get("SCRAPERAPI_KEY")
     if not key:
         return None
+    from youtube_transcript_api.proxies import GenericProxyConfig
     proxy_url = f"http://scraperapi:{key}@proxy-server.scraperapi.com:8001"
-    return {"http": proxy_url, "https": proxy_url}
+    return GenericProxyConfig(http_url=proxy_url, https_url=proxy_url)
 
 
 def fetch_youtube_transcript(video_id: str) -> str | None:
@@ -37,8 +38,8 @@ def fetch_youtube_transcript(video_id: str) -> str | None:
 
         preferred_langs = ["es", "es-419", "es-MX", "es-US", "en", "en-US"]
 
-        proxies = _build_proxies()
-        api = YouTubeTranscriptApi(proxies=proxies) if proxies else YouTubeTranscriptApi()
+        proxy_config = _build_proxy_config()
+        api = YouTubeTranscriptApi(proxy_config=proxy_config)
 
         snippets = api.fetch(video_id, languages=preferred_langs)
 
@@ -53,7 +54,7 @@ def fetch_youtube_transcript(video_id: str) -> str | None:
             logger.info(
                 "YouTube transcript fetched via API (%d chars, proxy=%s)",
                 len(transcript),
-                "scraperapi" if proxies else "direct",
+                "scraperapi" if proxy_config else "direct",
             )
             return transcript
         return None
