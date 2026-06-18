@@ -3,9 +3,14 @@
 Pipeline:
 1. Try recipe-scrapers library (structured extraction from 600+ sites)
 2. Fall back to Claude Haiku (scrape page text, send to same parse_recipe prompt)
+
+On Railway, direct HTTP requests are blocked by Cloudflare on most recipe sites.
+If SCRAPERAPI_KEY is set, all page fetches are routed through ScraperAPI.
 """
 
 import logging
+import os
+from urllib.parse import urlencode
 
 import httpx
 from bs4 import BeautifulSoup
@@ -13,6 +18,28 @@ from bs4 import BeautifulSoup
 from app.services.recipe_parser import parse_recipe
 
 logger = logging.getLogger(__name__)
+
+_SCRAPERAPI_BASE = "https://api.scraperapi.com"
+
+
+async def _fetch_html(url: str) -> str | None:
+    """Fetch raw HTML for a URL, routing through ScraperAPI if configured."""
+    key = os.environ.get("SCRAPERAPI_KEY")
+    if key:
+        params = {"api_key": key, "url": url}
+        fetch_url = f"{_SCRAPERAPI_BASE}?{urlencode(params)}"
+        logger.info("Fetching %s via ScraperAPI", url)
+    else:
+        fetch_url = url
+
+    try:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=30) as client:
+            resp = await client.get(fetch_url, headers={"User-Agent": "Mozilla/5.0"})
+            resp.raise_for_status()
+            return resp.text
+    except Exception as e:
+        logger.error("Failed to fetch %s: %s", url, e)
+        return None
 
 
 class BlogScrapeError(Exception):
@@ -30,19 +57,28 @@ async def extract_recipe_from_blog(url: str) -> dict:
         Dictionary with recipe data (same shape as parse_recipe output)
     """
     # Try recipe-scrapers first (fast, structured)
-    result = _try_recipe_scrapers(url)
+    result = await _try_recipe_scrapers(url)
     if result:
         return result
 
     # Fall back to scraping page text and sending to Claude
-    page_text = await _fetch_page_text(url)
-    if not page_text:
+    html = await _fetch_html(url)
+    if not html:
+        raise BlogScrapeError("No se pudo obtener el contenido de la página.")
+
+    soup = BeautifulSoup(html, "html.parser")
+    for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
+        tag.decompose()
+    page_text = soup.get_text(separator="\n", strip=True)
+    if len(page_text) > 8000:
+        page_text = page_text[:8000]
+    if len(page_text) < 100:
         raise BlogScrapeError("No se pudo obtener el contenido de la página.")
 
     return await parse_recipe(page_text)
 
 
-def _try_recipe_scrapers(url: str) -> dict | None:
+async def _try_recipe_scrapers(url: str) -> dict | None:
     """Try to extract recipe using recipe-scrapers library."""
     try:
         from recipe_scrapers import scrape_html
@@ -51,12 +87,9 @@ def _try_recipe_scrapers(url: str) -> dict | None:
         return None
 
     try:
-        # Fetch HTML first (recipe-scrapers needs raw HTML)
-        import httpx as _httpx
-        with _httpx.Client(follow_redirects=True, timeout=15) as client:
-            resp = client.get(url, headers={"User-Agent": "Mozilla/5.0"})
-            resp.raise_for_status()
-            html = resp.text
+        html = await _fetch_html(url)
+        if not html:
+            return None
 
         scraper = scrape_html(html, org_url=url)
 
@@ -134,28 +167,3 @@ def _looks_like_amount(s: str) -> bool:
     return any(c.isdigit() or c in "½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞/" for c in s)
 
 
-async def _fetch_page_text(url: str) -> str | None:
-    """Fetch a web page and extract readable text content."""
-    try:
-        async with httpx.AsyncClient(follow_redirects=True, timeout=15) as client:
-            resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0"})
-            resp.raise_for_status()
-            html = resp.text
-
-        soup = BeautifulSoup(html, "html.parser")
-
-        # Remove script and style elements
-        for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
-            tag.decompose()
-
-        text = soup.get_text(separator="\n", strip=True)
-
-        # Truncate to ~8000 chars to stay within Claude's sweet spot
-        if len(text) > 8000:
-            text = text[:8000]
-
-        return text if len(text) > 100 else None
-
-    except Exception as e:
-        logger.error(f"Failed to fetch page text from {url}: {e}")
-        return None
