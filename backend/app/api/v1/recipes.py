@@ -24,6 +24,7 @@ from app.services.video_platform import (
     extract_video_info,
 )
 from app.services.whisper import WhisperError, transcribe_from_url
+from app.services.youtube_transcript import fetch_youtube_transcript
 
 logger = logging.getLogger(__name__)
 
@@ -118,11 +119,20 @@ async def _convert_video(url: str) -> RecipeResponse:
         except (BlogScrapeError, RecipeParseError):
             logger.info("TikTok page scraping failed, falling back to audio transcription")
 
-    # Audio transcription pipeline (primary for YouTube, fallback for TikTok)
-    try:
-        transcript = transcribe_from_url(video_info.download_url, video_info.video_id)
-    except WhisperError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+    # YouTube: try captions API first — yt-dlp gets blocked by YouTube on
+    # Railway's datacenter IPs. The transcript API uses the same captions
+    # endpoint as the YouTube UI and is not blocked.
+    transcript: str | None = None
+    if video_info.platform == Platform.YOUTUBE:
+        transcript = fetch_youtube_transcript(video_info.video_id)
+
+    # Whisper fallback: download audio and transcribe (works for TikTok and
+    # any YouTube video where captions are disabled/unavailable)
+    if transcript is None:
+        try:
+            transcript = transcribe_from_url(video_info.download_url, video_info.video_id)
+        except WhisperError as e:
+            raise HTTPException(status_code=422, detail=str(e))
 
     # Guard against garbage transcripts (music-only videos, background noise).
     # Without this, Claude hallucinates a recipe from nonsense text.
