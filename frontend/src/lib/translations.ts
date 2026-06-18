@@ -332,7 +332,7 @@ export type Locale = keyof typeof translations;
 export type TranslationKey = keyof typeof translations.es;
 
 // Default locale - change this to switch languages
-export const defaultLocale: Locale = "es";
+export const defaultLocale: Locale = "en";
 
 export function t(key: TranslationKey, locale: Locale = defaultLocale): string {
   return translations[locale][key];
