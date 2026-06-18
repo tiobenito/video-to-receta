@@ -2,9 +2,6 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # Database
-    database_url: str = "postgresql://localhost:5432/video_to_recipe"
-
     # API Keys
     anthropic_api_key: str = ""
     openai_api_key: str = ""  # For Whisper fallback

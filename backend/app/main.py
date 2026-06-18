@@ -1,25 +1,14 @@
 import os
-from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1 import health, recipes
-from app.core.database import db
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await db.connect()
-    yield
-    await db.disconnect()
-
 
 app = FastAPI(
     title="Video to Recipe API",
     description="Convert YouTube cooking videos into structured recipes",
     version="0.1.0",
-    lifespan=lifespan,
 )
 
 # CORS - allow frontend to call API

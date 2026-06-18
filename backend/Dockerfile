@@ -20,11 +20,6 @@ RUN poetry config virtualenvs.create false \
 # Copy application code
 COPY . .
 
-# Generate Prisma client
-RUN prisma generate --schema=db/prisma/schema.prisma
-
 EXPOSE 8000
 
-# Run migrations then start server
-CMD prisma db push --schema=db/prisma/schema.prisma --accept-data-loss && \
-    uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}

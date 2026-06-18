@@ -1,5 +1,1 @@
-"""Database connection management."""
-
-from prisma import Prisma
-
-db = Prisma()
+# Database removed — no longer used in demo mode.

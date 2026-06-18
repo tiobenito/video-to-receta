@@ -6,12 +6,12 @@ Supports:
 - Blog/recipe website URLs
 """
 
-import json
 import logging
+import uuid
+from hashlib import md5
 
 from fastapi import APIRouter, HTTPException
 
-from app.core.database import db
 from app.models.recipe import ConvertRequest, ErrorResponse, RecipeResponse
 from app.services.blog_scraper import BlogScrapeError, extract_recipe_from_blog
 from app.services.recipe_parser import RecipeParseError, parse_recipe
@@ -54,37 +54,9 @@ async def convert_video_to_recipe(request: ConvertRequest):
 
     For videos: Uses Whisper for transcription, then Claude to extract the recipe.
     For blogs: Uses recipe-scrapers for structured data, falls back to Claude.
-    If the recipe has been converted before, returns the cached version.
     """
     url = str(request.url)
     url_type = detect_url_type(url)
-
-    # Check cache first (using youtubeUrl field for all platforms for backwards compat)
-    existing = await db.recipe.find_unique(where={"youtubeUrl": url})
-    if existing:
-        # Increment access count
-        await db.recipe.update(
-            where={"id": existing.id},
-            data={"accessCount": existing.accessCount + 1},
-        )
-        return RecipeResponse(
-            id=existing.id,
-            youtubeUrl=existing.youtubeUrl,
-            videoId=existing.videoId,
-            videoTitle=existing.videoTitle,
-            channelName=existing.channelName,
-            creatorUsername=getattr(existing, "creatorUsername", None),
-            creatorUrl=getattr(existing, "creatorUrl", None),
-            platform=getattr(existing, "platform", None),
-            title=existing.title,
-            ingredients=json.loads(existing.ingredients),
-            instructions=json.loads(existing.instructions),
-            prepTime=existing.prepTime,
-            cookTime=existing.cookTime,
-            servings=existing.servings,
-            tags=json.loads(existing.tags) if getattr(existing, "tags", None) else [],
-            cached=True,
-        )
 
     if url_type == "blog":
         return await _convert_blog(url)
@@ -101,36 +73,19 @@ async def _convert_blog(url: str) -> RecipeResponse:
     except RecipeParseError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
-    # Generate a stable video_id from the URL for caching
-    from hashlib import md5
     video_id = f"blog_{md5(url.encode()).hexdigest()[:12]}"
 
-    recipe = await db.recipe.create(
-        data={
-            "youtubeUrl": url,
-            "videoId": video_id,
-            "platform": "blog",
-            "title": recipe_data["title"],
-            "ingredients": json.dumps(recipe_data["ingredients"]),
-            "instructions": json.dumps(recipe_data["instructions"]),
-            "prepTime": recipe_data.get("prepTime"),
-            "cookTime": recipe_data.get("cookTime"),
-            "servings": recipe_data.get("servings"),
-            "tags": json.dumps(recipe_data.get("tags", [])),
-        }
-    )
-
     return RecipeResponse(
-        id=recipe.id,
+        id=str(uuid.uuid4()),
         youtubeUrl=url,
         videoId=video_id,
         platform="blog",
-        title=recipe.title,
+        title=recipe_data["title"],
         ingredients=recipe_data["ingredients"],
         instructions=recipe_data["instructions"],
-        prepTime=recipe.prepTime,
-        cookTime=recipe.cookTime,
-        servings=recipe.servings,
+        prepTime=recipe_data.get("prepTime"),
+        cookTime=recipe_data.get("cookTime"),
+        servings=recipe_data.get("servings"),
         tags=recipe_data.get("tags", []),
         cached=False,
     )
@@ -138,7 +93,6 @@ async def _convert_blog(url: str) -> RecipeResponse:
 
 async def _convert_video(url: str) -> RecipeResponse:
     """Extract a recipe from a video URL (YouTube/TikTok)."""
-    # Extract video info (platform, video_id, download URL)
     try:
         video_info = extract_video_info(url)
     except UnsupportedPlatformError as e:
@@ -159,7 +113,7 @@ async def _convert_video(url: str) -> RecipeResponse:
             # so the scraper often returns empty/garbage that Claude can't use.
             if recipe_data.get("ingredients") and recipe_data.get("instructions"):
                 logger.info("TikTok recipe extracted via page scraping (skipped audio)")
-                return await _save_and_respond(url, video_info, recipe_data)
+                return _build_response(url, video_info, recipe_data)
             logger.info("TikTok page scraping returned empty recipe, falling back to audio")
         except (BlogScrapeError, RecipeParseError):
             logger.info("TikTok page scraping failed, falling back to audio transcription")
@@ -168,10 +122,7 @@ async def _convert_video(url: str) -> RecipeResponse:
     try:
         transcript = transcribe_from_url(video_info.download_url, video_info.video_id)
     except WhisperError as e:
-        raise HTTPException(
-            status_code=422,
-            detail=str(e),
-        )
+        raise HTTPException(status_code=422, detail=str(e))
 
     # Guard against garbage transcripts (music-only videos, background noise).
     # Without this, Claude hallucinates a recipe from nonsense text.
@@ -195,80 +146,24 @@ async def _convert_video(url: str) -> RecipeResponse:
     except RecipeParseError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
-    return await _save_and_respond(url, video_info, recipe_data, transcript)
+    return _build_response(url, video_info, recipe_data)
 
 
-async def _save_and_respond(
-    url: str,
-    video_info,
-    recipe_data: dict,
-    transcript: str | None = None,
-) -> RecipeResponse:
-    """Save recipe to database and build response."""
-    recipe = await db.recipe.create(
-        data={
-            "youtubeUrl": url,
-            "videoId": video_info.video_id,
-            "creatorUsername": video_info.creator_username,
-            "creatorUrl": video_info.creator_url,
-            "platform": video_info.platform.value,
-            "transcript": transcript,
-            "title": recipe_data["title"],
-            "ingredients": json.dumps(recipe_data["ingredients"]),
-            "instructions": json.dumps(recipe_data["instructions"]),
-            "prepTime": recipe_data.get("prepTime"),
-            "cookTime": recipe_data.get("cookTime"),
-            "servings": recipe_data.get("servings"),
-            "tags": json.dumps(recipe_data.get("tags", [])),
-        }
-    )
-
+def _build_response(url: str, video_info, recipe_data: dict) -> RecipeResponse:
+    """Build a RecipeResponse from video info and parsed recipe data."""
     return RecipeResponse(
-        id=recipe.id,
-        youtubeUrl=recipe.youtubeUrl,
-        videoId=recipe.videoId,
-        videoTitle=recipe.videoTitle,
-        channelName=recipe.channelName,
+        id=str(uuid.uuid4()),
+        youtubeUrl=url,
+        videoId=video_info.video_id,
         creatorUsername=video_info.creator_username,
         creatorUrl=video_info.creator_url,
         platform=video_info.platform.value,
-        title=recipe.title,
+        title=recipe_data["title"],
         ingredients=recipe_data["ingredients"],
         instructions=recipe_data["instructions"],
-        prepTime=recipe.prepTime,
-        cookTime=recipe.cookTime,
-        servings=recipe.servings,
+        prepTime=recipe_data.get("prepTime"),
+        cookTime=recipe_data.get("cookTime"),
+        servings=recipe_data.get("servings"),
         tags=recipe_data.get("tags", []),
         cached=False,
-    )
-
-
-@router.get(
-    "/{recipe_id}",
-    response_model=RecipeResponse,
-    responses={404: {"model": ErrorResponse, "description": "Recipe not found"}},
-)
-async def get_recipe(recipe_id: str):
-    """Get a cached recipe by ID."""
-    recipe = await db.recipe.find_unique(where={"id": recipe_id})
-
-    if not recipe:
-        raise HTTPException(status_code=404, detail="Recipe not found")
-
-    return RecipeResponse(
-        id=recipe.id,
-        youtubeUrl=recipe.youtubeUrl,
-        videoId=recipe.videoId,
-        videoTitle=recipe.videoTitle,
-        channelName=recipe.channelName,
-        creatorUsername=getattr(recipe, "creatorUsername", None),
-        creatorUrl=getattr(recipe, "creatorUrl", None),
-        platform=getattr(recipe, "platform", None),
-        title=recipe.title,
-        ingredients=json.loads(recipe.ingredients),
-        instructions=json.loads(recipe.instructions),
-        prepTime=recipe.prepTime,
-        cookTime=recipe.cookTime,
-        servings=recipe.servings,
-        cached=True,
     )
