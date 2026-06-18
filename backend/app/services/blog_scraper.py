@@ -33,9 +33,15 @@ async def _fetch_html(url: str) -> str | None:
         fetch_url = url
 
     try:
-        async with httpx.AsyncClient(follow_redirects=True, timeout=30) as client:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=60) as client:
             resp = await client.get(fetch_url, headers={"User-Agent": "Mozilla/5.0"})
-            resp.raise_for_status()
+            if resp.status_code != 200:
+                logger.error("Fetch %s returned HTTP %d: %s", url, resp.status_code, resp.text[:200])
+                return None
+            if len(resp.text) < 100:
+                logger.error("Fetch %s returned near-empty body (%d chars)", url, len(resp.text))
+                return None
+            logger.info("Fetched %s: %d chars", url, len(resp.text))
             return resp.text
     except Exception as e:
         logger.error("Failed to fetch %s: %s", url, e)
