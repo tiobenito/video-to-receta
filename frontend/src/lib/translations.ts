@@ -124,6 +124,12 @@ export const translations = {
     people: "personas",
     resetScale: "Restablecer",
 
+    // Nav
+    navConvert: "Convertir",
+    navRecipeBook: "Recetario",
+    myPrefix: "Mi",
+    noRecipesFound: "No se encontraron recetas",
+
     // Shopping list
     shoppingList: "Lista de Compras",
     addToShoppingList: "Agregar a lista",
@@ -281,6 +287,12 @@ export const translations = {
     servingsFor: "Servings for",
     people: "people",
     resetScale: "Reset",
+
+    // Nav
+    navConvert: "Convert",
+    navRecipeBook: "Recipe Book",
+    myPrefix: "My",
+    noRecipesFound: "No recipes found",
 
     // Shopping list
     shoppingList: "Shopping List",

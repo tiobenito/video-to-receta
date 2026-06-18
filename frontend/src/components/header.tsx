@@ -17,7 +17,7 @@ export function Header() {
           href="/"
           className="font-serif text-xl font-semibold text-[var(--text-dark)]"
         >
-          Video <span className="text-[var(--teal)]">a</span> Receta
+          Video <span className="text-[var(--teal)]">{locale === "en" ? "to" : "a"}</span> {locale === "en" ? "Recipe" : "Receta"}
         </Link>
         <div className="flex items-center gap-6">
           <Link
@@ -28,7 +28,7 @@ export function Header() {
                 : "text-[var(--text-muted)] hover:text-[var(--teal)]"
             }`}
           >
-            Convertir
+            {t("navConvert")}
           </Link>
           <Link
             href="/recetario"
@@ -38,7 +38,7 @@ export function Header() {
                 : "text-[var(--text-muted)] hover:text-[var(--teal)]"
             }`}
           >
-            Recetario
+            {t("navRecipeBook")}
           </Link>
           <Link
             href="/lista-compras"
@@ -51,12 +51,30 @@ export function Header() {
             {t("shoppingList")}
           </Link>
 
-          <button
-            onClick={toggle}
-            className="text-sm font-medium px-2.5 py-1 rounded-md border border-[var(--border-warm)] text-[var(--text-muted)] hover:border-[var(--teal)] hover:text-[var(--teal)] transition-colors"
-          >
-            {locale === "en" ? "ES" : "EN"}
-          </button>
+          {/* Language toggle — dual pill */}
+          <div className="flex items-center rounded-md border border-[var(--border-warm)] overflow-hidden">
+            <button
+              onClick={() => locale !== "en" && toggle()}
+              className={`text-sm font-semibold px-2.5 py-1 transition-colors ${
+                locale === "en"
+                  ? "bg-[var(--teal)] text-white"
+                  : "text-[var(--text-muted)] hover:text-[var(--teal)]"
+              }`}
+            >
+              EN
+            </button>
+            <div className="w-px h-4 bg-[var(--border-warm)]" />
+            <button
+              onClick={() => locale !== "es" && toggle()}
+              className={`text-sm font-semibold px-2.5 py-1 transition-colors ${
+                locale === "es"
+                  ? "bg-[var(--teal)] text-white"
+                  : "text-[var(--text-muted)] hover:text-[var(--teal)]"
+              }`}
+            >
+              ES
+            </button>
+          </div>
         </div>
       </div>
     </nav>

@@ -13,7 +13,7 @@ import { getCollections } from "@/lib/collection-storage";
 import { useLanguage } from "@/lib/language-context";
 
 export default function RecetarioPage() {
-  const { t, translateTag } = useLanguage();
+  const { t, translateTag, locale } = useLanguage();
   const [recipes, setRecipes] = useState<SavedRecipe[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<SavedRecipe | null>(null);
@@ -96,11 +96,13 @@ export default function RecetarioPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-[var(--text-dark)]">
-            Mi <span className="text-[var(--teal)]">Recetario</span>
+            {t("myPrefix")} <span className="text-[var(--teal)]">{t("navRecipeBook")}</span>
           </h1>
           <p className="text-lg text-[var(--text-muted)]">
             {recipes.length > 0
-              ? `${recipes.length} receta${recipes.length !== 1 ? "s" : ""} guardada${recipes.length !== 1 ? "s" : ""}`
+              ? locale === "en"
+                ? `${recipes.length} recipe${recipes.length !== 1 ? "s" : ""} saved`
+                : `${recipes.length} receta${recipes.length !== 1 ? "s" : ""} guardada${recipes.length !== 1 ? "s" : ""}`
               : t("recipeBookDescription")
             }
           </p>
@@ -197,7 +199,9 @@ export default function RecetarioPage() {
             {hasFilters && (
               <div className="mt-4 flex items-center gap-2">
                 <span className="text-sm text-[var(--text-muted)]">
-                  {filteredRecipes.length} resultado{filteredRecipes.length !== 1 ? "s" : ""}
+                  {locale === "en"
+                    ? `${filteredRecipes.length} result${filteredRecipes.length !== 1 ? "s" : ""}`
+                    : `${filteredRecipes.length} resultado${filteredRecipes.length !== 1 ? "s" : ""}`}
                 </span>
                 <button
                   onClick={clearFilters}
@@ -233,7 +237,7 @@ export default function RecetarioPage() {
         ) : filteredRecipes.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-lg text-[var(--text-muted)] mb-4">
-              No se encontraron recetas
+              {t("noRecipesFound")}
             </p>
             <button
               onClick={clearFilters}
