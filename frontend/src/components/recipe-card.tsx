@@ -192,7 +192,7 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
       y += 5;
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(42, 157, 143); // teal
+      doc.setTextColor(45, 106, 79); // herb green
       doc.text("INGREDIENTES", margin, y);
       y += 8;
 
@@ -216,7 +216,7 @@ export function RecipeCard({ recipe, showRemove = false, onRemove, onUpdate }: R
       y += 8;
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(42, 157, 143); // teal
+      doc.setTextColor(45, 106, 79); // herb green
       doc.text("INSTRUCCIONES", margin, y);
       y += 8;
 

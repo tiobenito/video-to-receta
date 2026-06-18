@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
-import { Inter, Lora } from "next/font/google";
+import { DM_Sans, DM_Serif_Display } from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
 import "./globals.css";
 
-const inter = Inter({
+const inter = DM_Sans({
   variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const lora = Lora({
+const lora = DM_Serif_Display({
   variable: "--font-lora",
   subsets: ["latin"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {

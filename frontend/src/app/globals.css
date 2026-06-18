@@ -49,56 +49,56 @@
 :root {
   --radius: 0.625rem;
 
-  /* Custom palette - Teal & Gold */
-  --teal: #2A9D8F;
-  --teal-light: #3DB4A6;
-  --teal-dark: #238B7E;
-  --gold: #E8A849;
-  --gold-dark: #D4952E;
+  /* Custom palette - Garden Fresh (herb green + lemon) */
+  --teal: #2D6A4F;
+  --teal-light: #40916C;
+  --teal-dark: #1B5E3C;
+  --gold: #E9C46A;
+  --gold-dark: #D4A035;
 
-  /* Warm backgrounds */
-  --cream: #FDF6EE;
-  --cream-dark: #F8EEE2;
-  --card-white: #FFFDF9;
-  --border-warm: #E8DFD4;
+  /* Fresh backgrounds */
+  --cream: #F8FAF5;
+  --cream-dark: #EEF5EA;
+  --card-white: #FFFFFF;
+  --border-warm: #D0E8D8;
 
   /* Text colors */
-  --text-dark: #2D2A26;
-  --text-body: #4A4540;
-  --text-muted: #8B8178;
+  --text-dark: #1A3128;
+  --text-body: #345444;
+  --text-muted: #7A9A82;
 
   /* Shadcn overrides */
-  --background: #FDF6EE;
-  --foreground: #2D2A26;
-  --card: #FFFDF9;
-  --card-foreground: #2D2A26;
-  --popover: #FFFDF9;
-  --popover-foreground: #2D2A26;
-  --primary: #2A9D8F;
+  --background: #F8FAF5;
+  --foreground: #1A3128;
+  --card: #FFFFFF;
+  --card-foreground: #1A3128;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A3128;
+  --primary: #2D6A4F;
   --primary-foreground: #FFFFFF;
-  --secondary: #E8A849;
-  --secondary-foreground: #FFFFFF;
-  --muted: #F8EEE2;
-  --muted-foreground: #8B8178;
-  --accent: #E8A849;
-  --accent-foreground: #FFFFFF;
+  --secondary: #E9C46A;
+  --secondary-foreground: #1A3128;
+  --muted: #EEF5EA;
+  --muted-foreground: #7A9A82;
+  --accent: #E9C46A;
+  --accent-foreground: #1A3128;
   --destructive: #D94F3D;
-  --border: #E8DFD4;
-  --input: #E8DFD4;
-  --ring: #2A9D8F;
-  --chart-1: #2A9D8F;
-  --chart-2: #E8A849;
-  --chart-3: #3DB4A6;
-  --chart-4: #D4952E;
-  --chart-5: #238B7E;
-  --sidebar: #FFFDF9;
-  --sidebar-foreground: #2D2A26;
-  --sidebar-primary: #2A9D8F;
+  --border: #D0E8D8;
+  --input: #D0E8D8;
+  --ring: #2D6A4F;
+  --chart-1: #2D6A4F;
+  --chart-2: #E9C46A;
+  --chart-3: #40916C;
+  --chart-4: #D4A035;
+  --chart-5: #1B5E3C;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #1A3128;
+  --sidebar-primary: #2D6A4F;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F8EEE2;
-  --sidebar-accent-foreground: #2D2A26;
-  --sidebar-border: #E8DFD4;
-  --sidebar-ring: #2A9D8F;
+  --sidebar-accent: #EEF5EA;
+  --sidebar-accent-foreground: #1A3128;
+  --sidebar-border: #D0E8D8;
+  --sidebar-ring: #2D6A4F;
 }
 
 .dark {
