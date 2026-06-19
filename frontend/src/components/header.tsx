@@ -55,7 +55,7 @@ export function Header() {
           <div className="flex items-center rounded-md border border-[var(--border-warm)] overflow-hidden">
             <button
               onClick={() => locale !== "en" && toggle()}
-              className={`text-sm font-semibold px-2.5 py-1 transition-colors ${
+              className={`cursor-pointer text-sm font-semibold px-2.5 py-1 transition-colors ${
                 locale === "en"
                   ? "bg-[var(--teal)] text-white"
                   : "text-[var(--text-muted)] hover:text-[var(--teal)]"
@@ -66,7 +66,7 @@ export function Header() {
             <div className="w-px h-4 bg-[var(--border-warm)]" />
             <button
               onClick={() => locale !== "es" && toggle()}
-              className={`text-sm font-semibold px-2.5 py-1 transition-colors ${
+              className={`cursor-pointer text-sm font-semibold px-2.5 py-1 transition-colors ${
                 locale === "es"
                   ? "bg-[var(--teal)] text-white"
                   : "text-[var(--text-muted)] hover:text-[var(--teal)]"

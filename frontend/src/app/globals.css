@@ -211,6 +211,8 @@
   );
 }
 
+button { cursor: pointer; }
+
 /* Recipe grid card */
 .recipe-grid-card {
   position: relative;
